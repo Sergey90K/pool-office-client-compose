@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">Pool Office Client Compose</string>
+    <string name="pool_office_client">Pool Office Client</string>
+    <string name="temperature_icon">Temperature icon</string>
+    <string name="pump_icon">Pump icon</string>
+    <string name="temperature">Temperature</string>
+    <string name="sensor_number">Sensor number %d</string>
+    <string name="pump">Pump</string>
+    <string name="c">°C</string>
+    <string name="Procent">%</string>
+    <string name="company_icon">Company icon</string>
+    <string name="relay">Relay %d</string>
+    <string name="switch_for_management">Switch for management</string>
+    <string name="switch_icon">Switch icon</string>
+    <string name="the_switch_is_on">The switch is on</string>
+    <string name="the_switch_is_off">The switch is off</string>
+    <string name="loading">Loading</string>
+    <string name="connection_error">Connection error</string>
+    <string name="loading_failed">Loading failed</string>
+    <string name="retry">Retry</string>
 </resources>
