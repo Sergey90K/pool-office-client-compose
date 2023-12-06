@@ -46,6 +46,19 @@ import com.example.poolofficeclientcompose.R
 import com.example.poolofficeclientcompose.ui.theme.PoolOfficeClientComposeTheme
 
 @Composable
+fun HomeScreen(
+    poolInfoDataUiState: PoolOfficeUiState,
+    modifier: Modifier = Modifier
+) {
+    when (poolInfoDataUiState) {
+        is PoolOfficeUiState.Loading -> { LoadingScreen(modifier = modifier.fillMaxSize())}
+        is PoolOfficeUiState.Error -> { ErrorScreen(retryAction = { /*TODO*/ }, modifier = modifier.fillMaxSize())}
+        is PoolOfficeUiState.Success -> {}
+    }
+
+}
+
+@Composable
 fun SwitchItem(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
