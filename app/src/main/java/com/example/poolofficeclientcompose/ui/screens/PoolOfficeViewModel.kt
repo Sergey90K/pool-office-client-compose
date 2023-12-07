@@ -19,14 +19,14 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 sealed interface PoolOfficeUiState {
-    data class Success(val CombineData: CombinedData) : PoolOfficeUiState
+    data class Success(val combineData: CombinedData) : PoolOfficeUiState
     object Error : PoolOfficeUiState
     object Loading : PoolOfficeUiState
 }
 
 class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository) : ViewModel() {
 
-    var poolInfoDataUiState: PoolOfficeUiState by mutableStateOf(PoolOfficeUiState.Loading)
+    var poolInfoDataUiState: PoolOfficeUiState by mutableStateOf(PoolOfficeUiState.Error)
         private set
 
     init {
@@ -100,9 +100,9 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                         val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
                         if (rezRelaySwitchState.relayNumber == relayId && rezRelaySwitchState.errorCode == 0 && rezRelaySwitchState.stateRelay == relayState) {
                             val sensorsData =
-                                (poolInfoDataUiState as PoolOfficeUiState.Success).CombineData.sensorsData
+                                (poolInfoDataUiState as PoolOfficeUiState.Success).combineData.sensorsData
                             val relaysData =
-                                (poolInfoDataUiState as PoolOfficeUiState.Success).CombineData.relayData
+                                (poolInfoDataUiState as PoolOfficeUiState.Success).combineData.relayData
                             relaysData.relayAnswer[relayId] = relayState
                             poolInfoDataUiState =
                                 PoolOfficeUiState.Success(CombinedData(sensorsData, relaysData))

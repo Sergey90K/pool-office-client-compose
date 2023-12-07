@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -28,11 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,23 +41,90 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.poolofficeclientcompose.R
+import com.example.poolofficeclientcompose.network.InitializationStateRelay
+import com.example.poolofficeclientcompose.network.PoolInfoData
 import com.example.poolofficeclientcompose.ui.theme.PoolOfficeClientComposeTheme
 
 @Composable
 fun HomeScreen(
     poolInfoDataUiState: PoolOfficeUiState,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    reloadAllData: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (poolInfoDataUiState) {
-        is PoolOfficeUiState.Loading -> { LoadingScreen(modifier = modifier.fillMaxSize())}
-        is PoolOfficeUiState.Error -> { ErrorScreen(retryAction = { /*TODO*/ }, modifier = modifier.fillMaxSize())}
-        is PoolOfficeUiState.Success -> {}
-    }
+        is PoolOfficeUiState.Success -> {
+            SuccessScreen(
+                poolOfficeSensor = poolInfoDataUiState.combineData.sensorsData,
+                poolOfficeSwitch = poolInfoDataUiState.combineData.relayData,
+                switchRelay
+            )
+        }
 
+        is PoolOfficeUiState.Error -> {
+            ErrorScreen(retryAction = reloadAllData, modifier = modifier.fillMaxSize())
+        }
+
+        is PoolOfficeUiState.Loading -> {
+            LoadingScreen(modifier = modifier.fillMaxSize())
+        }
+
+    }
 }
 
 @Composable
-fun SwitchItem(modifier: Modifier = Modifier) {
+fun SuccessScreen(
+    poolOfficeSensor: PoolInfoData,
+    poolOfficeSwitch: InitializationStateRelay,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column {
+        SensorPanel(poolOfficeSensor, modifier = modifier.fillMaxSize())
+        SwitchPanel(poolOfficeSwitch, switchRelay, modifier = modifier.fillMaxSize())
+    }
+}
+
+@Composable
+fun SwitchPanel(
+    poolOfficeSwitch: InitializationStateRelay,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn() {
+        items(poolOfficeSwitch.relayAnswer.size) {
+            SwitchItem(
+                it,
+                poolOfficeSwitch.relayAnswer[it],
+                switchRelay,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+            )
+        }
+    }
+}
+
+@Composable
+fun SensorPanel(poolOfficeSensor: PoolInfoData, modifier: Modifier = Modifier) {
+    val innerData =
+        listOf(poolOfficeSensor.t1, poolOfficeSensor.t2, poolOfficeSensor.t3, poolOfficeSensor.p1)
+    LazyColumn() {
+        items(innerData.size) {
+            TemperatureOrPumpItem(
+                sensorIndicator = innerData[it],
+                isTemperature = (it < 3),
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+            )
+        }
+    }
+}
+
+@Composable
+fun SwitchItem(
+    relayNumber: Int,
+    stateOnOff: Boolean,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier
     ) {
@@ -78,9 +143,9 @@ fun SwitchItem(modifier: Modifier = Modifier) {
                     .padding(dimensionResource(R.dimen.padding_small))
             ) {
                 SwitchIcon(switchIcon = R.drawable.thermostat_black_48dp)
-                SwitchLabel(relayNumber = 1)
+                SwitchLabel(relayNumber + 1)
                 Spacer(Modifier.weight(1f))
-                RelaySwitch()
+                RelaySwitch(relayNumber, stateOnOff, switchRelay)
 
             }
         }
@@ -130,13 +195,16 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RelaySwitch(modifier: Modifier = Modifier) {
-    var checked by remember { mutableStateOf(true) }
-
+fun RelaySwitch(
+    relayId: Int,
+    stateOnOff: Boolean,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Switch(
-        checked = checked,
-        onCheckedChange = { checked = it },
-        thumbContent = if (checked) {
+        checked = stateOnOff,
+        onCheckedChange = { switchRelay(relayId, !stateOnOff) },
+        thumbContent = if (stateOnOff) {
             {
                 Icon(
                     imageVector = Icons.Filled.Check,
@@ -188,7 +256,7 @@ fun SwitchIcon(@DrawableRes switchIcon: Int) {
 
 @Composable
 fun TemperatureOrPumpItem(
-    sensorIndicator: Float = 20.5F,
+    sensorIndicator: Float,
     isTemperature: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -290,8 +358,9 @@ fun TemperatureOrPumpIcon(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PoolOfficeTopAppBar(modifier: Modifier = Modifier) {
+fun PoolOfficeTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifier) {
     CenterAlignedTopAppBar(
+        scrollBehavior = scrollBehavior,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -317,6 +386,8 @@ fun PoolOfficeTopAppBar(modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     PoolOfficeClientComposeTheme(darkTheme = false) {
-        //  LoadingScreen()
+        // SwitchPanel(
+        // poolOfficeSwitch = InitializationStateRelay(
+        //  arrayOf(true, false, true, false, true, false), 0,), switchRelay = {poolOffice})
     }
 }
