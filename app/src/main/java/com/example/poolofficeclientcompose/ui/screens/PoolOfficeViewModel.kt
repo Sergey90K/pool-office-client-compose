@@ -1,10 +1,12 @@
 package com.example.poolofficeclientcompose.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -26,7 +28,7 @@ sealed interface PoolOfficeUiState {
 
 class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository) : ViewModel() {
 
-    var poolInfoDataUiState: PoolOfficeUiState by mutableStateOf(PoolOfficeUiState.Error)
+    var poolInfoDataUiState: PoolOfficeUiState by mutableStateOf(PoolOfficeUiState.Loading)
         private set
 
     init {
@@ -40,6 +42,7 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                 val relayData = poolOfficeRepository.getInitializationState()
                 when (sensorsData) {
                     is NetworkResult.Success -> {
+                        Log.d("Debug","1" )
                         when (relayData) {
                             is NetworkResult.Success -> {
                                 PoolOfficeUiState.Success(
@@ -51,6 +54,7 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                             }
 
                             is NetworkResult.Exception -> {
+
                                 PoolOfficeUiState.Error
                             }
 
@@ -61,15 +65,20 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                     }
 
                     is NetworkResult.Exception -> {
+                        Log.d("Debug","2" )
+                        Log.d("Debug",sensorsData.e.toString())
+                        sensorsData.e
                         PoolOfficeUiState.Error
                     }
 
                     is NetworkResult.Error -> {
+                        Log.d("Debug","3" )
                         PoolOfficeUiState.Error
                     }
                 }
 
             } catch (e: IOException) {
+                Log.d("Debug","4" )
                 PoolOfficeUiState.Error
             }
         }
@@ -121,8 +130,7 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as PoolOfficeApplication)
+                val application = (this[APPLICATION_KEY] as PoolOfficeApplication)
                 val poolOfficeRepository = application.container.poolOfficeRepository
                 PoolOfficeViewModel(poolOfficeRepository = poolOfficeRepository)
             }
