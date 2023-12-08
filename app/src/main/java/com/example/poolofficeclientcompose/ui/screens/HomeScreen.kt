@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -26,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -79,19 +81,30 @@ fun SuccessScreen(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column {
-        SensorPanel(poolOfficeSensor, modifier = modifier.fillMaxSize())
-        SwitchPanel(poolOfficeSwitch, switchRelay, modifier = modifier.fillMaxSize())
-    }
+    AllPanelsInOne(
+        poolOfficeSensor = poolOfficeSensor,
+        poolOfficeSwitch = poolOfficeSwitch,
+        switchRelay = switchRelay,
+        modifier = modifier.fillMaxSize()
+    )
 }
 
 @Composable
-fun SwitchPanel(
-    poolOfficeSwitch: InitializationStateRelay,
-    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
-    modifier: Modifier = Modifier
+fun AllPanelsInOne(
+    poolOfficeSensor: PoolInfoData, poolOfficeSwitch: InitializationStateRelay,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit, modifier: Modifier = Modifier
 ) {
+    val innerData =
+        listOf(poolOfficeSensor.t1, poolOfficeSensor.t2, poolOfficeSensor.t3, poolOfficeSensor.p1)
+
     LazyColumn() {
+        items(innerData.size) {
+            TemperatureOrPumpItem(
+                sensorIndicator = innerData[it],
+                isTemperature = (it < 3),
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+            )
+        }
         items(poolOfficeSwitch.relayAnswer.size) {
             SwitchItem(
                 it,
@@ -101,21 +114,28 @@ fun SwitchPanel(
             )
         }
     }
-}
 
-@Composable
-fun SensorPanel(poolOfficeSensor: PoolInfoData, modifier: Modifier = Modifier) {
-    val innerData =
-        listOf(poolOfficeSensor.t1, poolOfficeSensor.t2, poolOfficeSensor.t3, poolOfficeSensor.p1)
-    LazyColumn() {
-        items(innerData.size) {
-            TemperatureOrPumpItem(
-                sensorIndicator = innerData[it],
-                isTemperature = (it < 3),
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-            )
-        }
-    }
+//    Column() {
+//        var counterSensor = 0
+//        var counterRelay = 0
+//        innerData.forEach { item ->
+//            TemperatureOrPumpItem(
+//                sensorIndicator = item,
+//                isTemperature = (counterSensor < 3),
+//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+//            )
+//            counterSensor++
+//        }
+//        poolOfficeSwitch.relayAnswer.forEach { itemSwitch ->
+//            SwitchItem(
+//                counterRelay,
+//                itemSwitch,
+//                switchRelay,
+//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+//            )
+//            counterRelay++
+//        }
+//    }
 }
 
 @Composable

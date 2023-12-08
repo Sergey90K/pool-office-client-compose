@@ -84,21 +84,6 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
         }
     }
 
-//    fun getCompleteRelayState() {
-//        viewModelScope.launch {
-//            completeRelayStateDataUiState = try {
-//                val netData = poolOfficeRepository.getInitializationState()
-//                when (netData) {
-//                    is NetworkResult.Success -> PoolOfficeUiState.SuccessRelay(netData.bodyData as InitializationStateRelay)
-//                    is NetworkResult.Exception -> PoolOfficeUiState.Error
-//                    is NetworkResult.Error -> PoolOfficeUiState.Error
-//                }
-//            } catch (e: IOException) {
-//                PoolOfficeUiState.Error
-//            }
-//        }
-//    }
-
     fun switchRelay(relayId: Int, relayState: Boolean) {
         viewModelScope.launch {
             try {
@@ -137,5 +122,3 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
         }
     }
 }
-
-
