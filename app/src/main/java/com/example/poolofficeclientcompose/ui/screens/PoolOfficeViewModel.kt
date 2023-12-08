@@ -39,9 +39,9 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
         viewModelScope.launch {
             poolInfoDataUiState = try {
                 val sensorsData = poolOfficeRepository.getSensorData()
-                val relayData = poolOfficeRepository.getInitializationState()
                 when (sensorsData) {
                     is NetworkResult.Success -> {
+                        val relayData = poolOfficeRepository.getInitializationState()
                         Log.d("Debug","1" )
                         when (relayData) {
                             is NetworkResult.Success -> {
