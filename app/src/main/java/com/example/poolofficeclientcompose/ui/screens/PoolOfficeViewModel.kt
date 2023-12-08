@@ -1,9 +1,6 @@
 package com.example.poolofficeclientcompose.ui.screens
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -43,13 +40,12 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
 
     fun getPoolInfo() {
         viewModelScope.launch {
-            _poolInfoDataUiState.update {
+            _poolInfoDataUiState.update {PoolOfficeUiState.Loading
                 try {
                     val sensorsData = poolOfficeRepository.getSensorData()
                     when (sensorsData) {
                         is NetworkResult.Success -> {
                             val relayData = poolOfficeRepository.getInitializationState()
-                            Log.d("Debug", "1")
                             when (relayData) {
                                 is NetworkResult.Success -> {
                                     PoolOfficeUiState.Success(
@@ -60,32 +56,22 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                     )
                                 }
 
-                                is NetworkResult.Exception -> {
-
+                                is NetworkResult.Exception ->
                                     PoolOfficeUiState.Error
-                                }
 
-                                is NetworkResult.Error -> {
+                                is NetworkResult.Error ->
                                     PoolOfficeUiState.Error
-                                }
                             }
                         }
 
-                        is NetworkResult.Exception -> {
-                            Log.d("Debug", "2")
-                            Log.d("Debug", sensorsData.e.toString())
-                            sensorsData.e
+                        is NetworkResult.Exception ->
                             PoolOfficeUiState.Error
-                        }
 
-                        is NetworkResult.Error -> {
-                            Log.d("Debug", "3")
+                        is NetworkResult.Error ->
                             PoolOfficeUiState.Error
-                        }
+
                     }
-
                 } catch (e: IOException) {
-                    Log.d("Debug", "4")
                     PoolOfficeUiState.Error
                 }
             }
@@ -94,30 +80,65 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
 
     fun switchRelay(relayId: Int, relayState: Boolean) {
         viewModelScope.launch {
-            try {
-                val state = if (relayState) 1 else 0
-                val relaySwitchState = poolOfficeRepository.switchRelay(relayId, state)
-                when (relaySwitchState) {
-                    is NetworkResult.Success -> {
-                        val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
-                        if (rezRelaySwitchState.relayNumber == relayId && rezRelaySwitchState.errorCode == 0 && rezRelaySwitchState.stateRelay == relayState) {
-                            val sensorsData =
-                                (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
-                            val relaysData =
-                                (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
-                            relaysData.relayAnswer[relayId] = relayState
-                            _poolInfoDataUiState.value =
-                                PoolOfficeUiState.Success(CombinedData(sensorsData, relaysData))
+            _poolInfoDataUiState.update {
+                try {
+                    val state = if (relayState) 1 else 0
+                    val relaySwitchState = poolOfficeRepository.switchRelay(relayId, state)
+                    when (relaySwitchState) {
+                        is NetworkResult.Success -> {
+                            Log.d("Debug", "1")
+                            val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
+                            if (rezRelaySwitchState.relayNumber ==
+                                relayId && rezRelaySwitchState.errorCode ==
+                                0 && rezRelaySwitchState.stateRelay ==
+                                relayState
+                            ) {
+                                Log.d("Debug", "3")
+                                when (_poolInfoDataUiState.value) {
+                                    is PoolOfficeUiState.Success -> {
+                                        Log.d("Debug", "4")
+                                        val sensorsData =
+                                            (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
+                                        Log.d("Debug", sensorsData.toString())
+                                        val relaysData =
+                                            (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
+                                        Log.d("Debug", relaysData.relayAnswer.size.toString())
+                                        relaysData.relayAnswer[relayId] = relayState
+                                        PoolOfficeUiState.Success(
+                                            CombinedData(
+                                                sensorsData,
+                                                relaysData
+                                            )
+                                        )
+                                    }
+
+                                    else -> {
+                                        Log.d("Debug", "5")
+                                        PoolOfficeUiState.Error
+                                    }
+                                }
+
+                            } else {
+                                Log.d("Debug", "6")
+                                PoolOfficeUiState.Error
+                            }
+
+                        }
+
+                        is NetworkResult.Exception -> {
+                            Log.d("Debug", "7")
+                            PoolOfficeUiState.Error
+                        }
+
+                        is NetworkResult.Error -> {
+                            Log.d("Debug", "8")
+                            PoolOfficeUiState.Error
                         }
                     }
-
-                    is NetworkResult.Exception -> _poolInfoDataUiState.value =
-                        PoolOfficeUiState.Error
-
-                    is NetworkResult.Error -> _poolInfoDataUiState.value = PoolOfficeUiState.Error
+                } catch (e: IOException) {
+                    Log.d("Debug", "9")
+                    PoolOfficeUiState.Error
                 }
-            } catch (e: IOException) {
-                _poolInfoDataUiState.value = PoolOfficeUiState.Error
             }
         }
     }

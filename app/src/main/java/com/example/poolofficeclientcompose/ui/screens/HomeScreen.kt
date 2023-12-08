@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -27,12 +26,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -114,28 +114,6 @@ fun AllPanelsInOne(
             )
         }
     }
-
-//    Column() {
-//        var counterSensor = 0
-//        var counterRelay = 0
-//        innerData.forEach { item ->
-//            TemperatureOrPumpItem(
-//                sensorIndicator = item,
-//                isTemperature = (counterSensor < 3),
-//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-//            )
-//            counterSensor++
-//        }
-//        poolOfficeSwitch.relayAnswer.forEach { itemSwitch ->
-//            SwitchItem(
-//                counterRelay,
-//                itemSwitch,
-//                switchRelay,
-//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-//            )
-//            counterRelay++
-//        }
-//    }
 }
 
 @Composable
@@ -221,10 +199,14 @@ fun RelaySwitch(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val checkedState = remember { mutableStateOf(stateOnOff) }
     Switch(
-        checked = stateOnOff,
-        onCheckedChange = { switchRelay(relayId, !stateOnOff) },
-        thumbContent = if (stateOnOff) {
+        checked = checkedState.value,
+        onCheckedChange = {
+            checkedState.value = it
+            switchRelay(relayId, it)
+        },
+        thumbContent = if (checkedState.value) {
             {
                 Icon(
                     imageVector = Icons.Filled.Check,
