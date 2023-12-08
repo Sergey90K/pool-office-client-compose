@@ -7,17 +7,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.poolofficeclientcompose.ui.screens.HomeScreen
 import com.example.poolofficeclientcompose.ui.screens.PoolOfficeTopAppBar
 import com.example.poolofficeclientcompose.ui.screens.PoolOfficeViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PoolOfficeApp() {
+fun PoolOfficeApp(poolOfficeViewModel: PoolOfficeViewModel =
+                      viewModel(factory = PoolOfficeViewModel.Factory)) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    val uiState by poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -28,10 +33,8 @@ fun PoolOfficeApp() {
                 .fillMaxSize()
                 .padding(it)
         ) {
-            val poolOfficeViewModel: PoolOfficeViewModel =
-                viewModel(factory = PoolOfficeViewModel.Factory)
             HomeScreen(
-                poolInfoDataUiState = poolOfficeViewModel.poolInfoDataUiState,
+                poolInfoDataUiState = uiState,
                 switchRelay = poolOfficeViewModel::switchRelay,
                 reloadAllData = poolOfficeViewModel::getPoolInfo
             )
