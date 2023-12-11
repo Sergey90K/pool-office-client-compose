@@ -1,6 +1,7 @@
 package com.example.poolofficeclientcompose.ui.screens
 
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -17,6 +18,8 @@ import com.example.poolofficeclientcompose.network.RelayData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -40,7 +43,8 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
 
     fun getPoolInfo() {
         viewModelScope.launch {
-            _poolInfoDataUiState.update {PoolOfficeUiState.Loading
+            _poolInfoDataUiState.getAndUpdate {
+                PoolOfficeUiState.Loading
                 try {
                     val sensorsData = poolOfficeRepository.getSensorData()
                     when (sensorsData) {

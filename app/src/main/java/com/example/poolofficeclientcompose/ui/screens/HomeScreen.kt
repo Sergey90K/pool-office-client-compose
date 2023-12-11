@@ -1,9 +1,16 @@
 package com.example.poolofficeclientcompose.ui.screens
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -31,8 +39,10 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +53,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.poolofficeclientcompose.R
+import com.example.poolofficeclientcompose.data.AppearanceSensor
+import com.example.poolofficeclientcompose.data.AppearanceSwitch
 import com.example.poolofficeclientcompose.network.InitializationStateRelay
 import com.example.poolofficeclientcompose.network.PoolInfoData
 import com.example.poolofficeclientcompose.ui.theme.PoolOfficeClientComposeTheme
@@ -52,6 +64,8 @@ fun HomeScreen(
     poolInfoDataUiState: PoolOfficeUiState,
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     reloadAllData: () -> Unit,
+    appearanceSwitch: List<AppearanceSwitch>,
+    appearanceSensor: List<AppearanceSensor>,
     modifier: Modifier = Modifier
 ) {
     when (poolInfoDataUiState) {
@@ -59,7 +73,9 @@ fun HomeScreen(
             SuccessScreen(
                 poolOfficeSensor = poolInfoDataUiState.combineData.sensorsData,
                 poolOfficeSwitch = poolInfoDataUiState.combineData.relayData,
-                switchRelay
+                switchRelay = switchRelay,
+                appearanceSwitch = appearanceSwitch,
+                appearanceSensor = appearanceSensor
             )
         }
 
@@ -79,41 +95,85 @@ fun SuccessScreen(
     poolOfficeSensor: PoolInfoData,
     poolOfficeSwitch: InitializationStateRelay,
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    appearanceSwitch: List<AppearanceSwitch>,
+    appearanceSensor: List<AppearanceSensor>,
     modifier: Modifier = Modifier
 ) {
     AllPanelsInOne(
         poolOfficeSensor = poolOfficeSensor,
         poolOfficeSwitch = poolOfficeSwitch,
         switchRelay = switchRelay,
+        appearanceSwitch = appearanceSwitch,
+        appearanceSensor = appearanceSensor,
         modifier = modifier.fillMaxSize()
     )
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AllPanelsInOne(
-    poolOfficeSensor: PoolInfoData, poolOfficeSwitch: InitializationStateRelay,
-    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit, modifier: Modifier = Modifier
+    poolOfficeSensor: PoolInfoData,
+    poolOfficeSwitch: InitializationStateRelay,
+    switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    appearanceSwitch: List<AppearanceSwitch>,
+    appearanceSensor: List<AppearanceSensor>,
+    modifier: Modifier = Modifier
 ) {
     val innerData =
         listOf(poolOfficeSensor.t1, poolOfficeSensor.t2, poolOfficeSensor.t3, poolOfficeSensor.p1)
 
-    LazyColumn() {
-        items(innerData.size) {
-            TemperatureOrPumpItem(
-                sensorIndicator = innerData[it],
-                isTemperature = (it < 3),
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-            )
-        }
-        items(poolOfficeSwitch.relayAnswer.size) {
-            SwitchItem(
-                it,
-                poolOfficeSwitch.relayAnswer[it],
-                switchRelay,
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-            )
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
         }
     }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)
+        ),
+        exit = fadeOut(),
+        modifier = modifier
+    ) {
+        LazyColumn() {
+            itemsIndexed(innerData) { index, sensor ->
+                TemperatureOrPumpItem(
+                    sensorIndicator = sensor,
+                    isTemperature = (index < 3),
+                    sensorNumber = index + 1,
+                    appearanceSensor = appearanceSensor[index],
+                    modifier = Modifier
+                        .padding(dimensionResource(R.dimen.padding_small))
+                        .animateEnterExit(enter = slideInVertically(
+                            animationSpec = spring(
+                                stiffness = Spring.StiffnessVeryLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            ), initialOffsetY = { it * (index + 1) }
+                        )
+                        )
+                )
+            }
+            itemsIndexed(poolOfficeSwitch.relayAnswer) { index, relay ->
+                SwitchItem(
+                    index,
+                    relay,
+                    switchRelay,
+                    appearanceSwitch[index],
+                    modifier = Modifier
+                        .padding(dimensionResource(R.dimen.padding_small))
+                        .animateEnterExit(enter = slideInVertically(
+                            animationSpec = spring(
+                                stiffness = Spring.StiffnessVeryLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            ), initialOffsetY = { it * (index + 1 + innerData.size) }
+                        )
+                        )
+                )
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -121,6 +181,7 @@ fun SwitchItem(
     relayNumber: Int,
     stateOnOff: Boolean,
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
+    appearanceSwitch: AppearanceSwitch,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -140,8 +201,8 @@ fun SwitchItem(
                     .fillMaxWidth()
                     .padding(dimensionResource(R.dimen.padding_small))
             ) {
-                SwitchIcon(switchIcon = R.drawable.thermostat_black_48dp)
-                SwitchLabel(relayNumber + 1)
+                SwitchIcon(switchIcon = appearanceSwitch.imageRes)
+                SwitchLabel(appearanceSwitch.nameRes, appearanceSwitch.descriptionRes)
                 Spacer(Modifier.weight(1f))
                 RelaySwitch(relayNumber, stateOnOff, switchRelay)
 
@@ -199,14 +260,14 @@ fun RelaySwitch(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val checkedState = remember { mutableStateOf(stateOnOff) }
+    var checkedState by remember { mutableStateOf(stateOnOff) }
     Switch(
-        checked = checkedState.value,
+        checked = stateOnOff,
         onCheckedChange = {
-            checkedState.value = it
             switchRelay(relayId, it)
+            checkedState = it
         },
-        thumbContent = if (checkedState.value) {
+        thumbContent = if (checkedState) {
             {
                 Icon(
                     imageVector = Icons.Filled.Check,
@@ -233,15 +294,19 @@ fun RelaySwitch(
 }
 
 @Composable
-fun SwitchLabel(relayNumber: Int, modifier: Modifier = Modifier) {
+fun SwitchLabel(
+    @StringRes relayName: Int,
+    @StringRes relayDescription: Int,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         Text(
-            text = stringResource(R.string.relay, relayNumber),
+            text = stringResource(relayName),
             style = MaterialTheme.typography.displayMedium,
             modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
         )
         Text(
-            text = stringResource(R.string.switch_for_management),
+            text = stringResource(relayDescription),
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -260,6 +325,8 @@ fun SwitchIcon(@DrawableRes switchIcon: Int) {
 fun TemperatureOrPumpItem(
     sensorIndicator: Float,
     isTemperature: Boolean = true,
+    sensorNumber: Int,
+    appearanceSensor: AppearanceSensor,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -279,8 +346,8 @@ fun TemperatureOrPumpItem(
                     .fillMaxWidth()
                     .padding(dimensionResource(R.dimen.padding_small))
             ) {
-                TemperatureOrPumpIcon(isTemperature)
-                TemperatureOrPumpLabel(isTemperature)
+                TemperatureOrPumpIcon(appearanceSensor.imageRes,isTemperature)
+                TemperatureOrPumpLabel(appearanceSensor.nameRes, appearanceSensor.descriptionRes)
                 Spacer(Modifier.weight(1f))
                 TemperatureOrPumpInfo(sensorIndicator, isTemperature)
 
@@ -310,23 +377,18 @@ fun TemperatureOrPumpInfo(sensorIndicator: Float, isTemperature: Boolean) {
 
 @Composable
 fun TemperatureOrPumpLabel(
-    isTemperature: Boolean,
-    sensorNumber: Int = 1,
+    @StringRes nameRes: Int,
+    @StringRes descriptionRes: Int,
     modifier: Modifier = Modifier
 ) {
-    val textRes = if (isTemperature) {
-        R.string.temperature
-    } else {
-        R.string.pump
-    }
     Column(modifier = modifier) {
         Text(
-            text = stringResource(textRes),
+            text = stringResource(nameRes),
             style = MaterialTheme.typography.displayMedium,
             modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
         )
         Text(
-            text = stringResource(R.string.sensor_number, sensorNumber),
+            text = stringResource(descriptionRes),
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -334,6 +396,7 @@ fun TemperatureOrPumpLabel(
 
 @Composable
 fun TemperatureOrPumpIcon(
+    @DrawableRes imageRes:Int,
     isTemperature: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -348,12 +411,7 @@ fun TemperatureOrPumpIcon(
             .padding(dimensionResource(R.dimen.padding_small))
             .clip(MaterialTheme.shapes.small),
         contentScale = ContentScale.Crop,
-        painter = if (isTemperature) {
-            painterResource(R.drawable.termometr)
-        } else {
-            painterResource(R.drawable.pump)
-        },
-
+        painter = painterResource(imageRes),
         contentDescription = description,
     )
 }

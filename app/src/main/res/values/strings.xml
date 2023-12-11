@@ -18,4 +18,24 @@
     <string name="connection_error">Connection error</string>
     <string name="loading_failed">Loading failed</string>
     <string name="retry">Retry</string>
+    <string name="termostat">Termostat</string>
+    <string name="thermostat_control">Thermostat control</string>
+    <string name="management_of_pumps">Management of pumps</string>
+    <string name="heating">Heating</string>
+    <string name="heating_control">Heating control</string>
+    <string name="electricity_management">Electricity management</string>
+    <string name="electricity">Electricity</string>
+    <string name="water">Water</string>
+    <string name="water_management">Water management</string>
+    <string name="cooling">Cooling</string>
+    <string name="lighting">Lighting</string>
+    <string name="lighting_control">Lighting control</string>
+    <string name="cover">Cover</string>
+    <string name="cover_management">Cover management</string>
+    <string name="pump_indicators">Pump indicators</string>
+    <string name="thermometer">Thermometer</string>
+    <string name="air_temperature">Air temperature</string>
+    <string name="water_temperature">Water temperature</string>
+    <string name="sensor">Sensor</string>
+    <string name="temperature_in_the_house">Temperature in the house</string>
 </resources>

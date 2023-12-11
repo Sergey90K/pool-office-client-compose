@@ -15,14 +15,22 @@ import com.example.poolofficeclientcompose.ui.screens.HomeScreen
 import com.example.poolofficeclientcompose.ui.screens.PoolOfficeTopAppBar
 import com.example.poolofficeclientcompose.ui.screens.PoolOfficeViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.poolofficeclientcompose.data.SensorScreenAndName
+import com.example.poolofficeclientcompose.data.SwitchScreenAndName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PoolOfficeApp(poolOfficeViewModel: PoolOfficeViewModel =
-                      viewModel(factory = PoolOfficeViewModel.Factory)) {
+fun PoolOfficeApp(
+    poolOfficeViewModel: PoolOfficeViewModel =
+        viewModel(factory = PoolOfficeViewModel.Factory)
+) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val uiState by poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
+    //val uiState = poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
+
+    val appearanceSwitch = SwitchScreenAndName.switches
+    val appearanceSensor = SensorScreenAndName.sensors
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -36,7 +44,9 @@ fun PoolOfficeApp(poolOfficeViewModel: PoolOfficeViewModel =
             HomeScreen(
                 poolInfoDataUiState = uiState,
                 switchRelay = poolOfficeViewModel::switchRelay,
-                reloadAllData = poolOfficeViewModel::getPoolInfo
+                reloadAllData = poolOfficeViewModel::getPoolInfo,
+                appearanceSwitch = appearanceSwitch,
+                appearanceSensor = appearanceSensor
             )
         }
 
