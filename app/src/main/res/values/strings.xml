@@ -38,4 +38,6 @@
     <string name="water_temperature">Water temperature</string>
     <string name="sensor">Sensor</string>
     <string name="temperature_in_the_house">Temperature in the house</string>
+    <string name="enable_everything">Enable everything</string>
+    <string name="turn_off_everything">Turn off everything</string>
 </resources>

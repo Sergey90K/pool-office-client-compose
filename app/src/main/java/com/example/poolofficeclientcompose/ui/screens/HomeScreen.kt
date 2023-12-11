@@ -26,8 +26,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -141,7 +144,6 @@ fun AllPanelsInOne(
                 TemperatureOrPumpItem(
                     sensorIndicator = sensor,
                     isTemperature = (index < 3),
-                    sensorNumber = index + 1,
                     appearanceSensor = appearanceSensor[index],
                     modifier = Modifier
                         .padding(dimensionResource(R.dimen.padding_small))
@@ -171,6 +173,18 @@ fun AllPanelsInOne(
                         )
                 )
             }
+            item(){
+                ShowButtons(modifier = Modifier
+                    .padding(dimensionResource(R.dimen.padding_small))
+                    .animateEnterExit(enter = slideInVertically(
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessVeryLow,
+                            dampingRatio = Spring.DampingRatioLowBouncy
+                        ), initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
+                    )
+                    ))
+            }
+
         }
     }
 
@@ -325,7 +339,6 @@ fun SwitchIcon(@DrawableRes switchIcon: Int) {
 fun TemperatureOrPumpItem(
     sensorIndicator: Float,
     isTemperature: Boolean = true,
-    sensorNumber: Int,
     appearanceSensor: AppearanceSensor,
     modifier: Modifier = Modifier
 ) {
@@ -346,7 +359,7 @@ fun TemperatureOrPumpItem(
                     .fillMaxWidth()
                     .padding(dimensionResource(R.dimen.padding_small))
             ) {
-                TemperatureOrPumpIcon(appearanceSensor.imageRes,isTemperature)
+                TemperatureOrPumpIcon(appearanceSensor.imageRes, isTemperature)
                 TemperatureOrPumpLabel(appearanceSensor.nameRes, appearanceSensor.descriptionRes)
                 Spacer(Modifier.weight(1f))
                 TemperatureOrPumpInfo(sensorIndicator, isTemperature)
@@ -396,7 +409,7 @@ fun TemperatureOrPumpLabel(
 
 @Composable
 fun TemperatureOrPumpIcon(
-    @DrawableRes imageRes:Int,
+    @DrawableRes imageRes: Int,
     isTemperature: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -442,12 +455,53 @@ fun PoolOfficeTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modif
     )
 }
 
+@Composable
+fun ShowButtons(modifier: Modifier) {
+    Card(
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(R.dimen.padding_small))
+            ) {
+                ButtonOnnOff(Icons.Filled.Clear, R.string.turn_off_everything, modifier)
+                Spacer(Modifier.weight(0.5f))
+                ButtonOnnOff(Icons.Filled.Check, R.string.enable_everything, modifier)
+            }
+        }
+    }
+}
+
+@Composable
+fun ButtonOnnOff(iconRes: ImageVector, @StringRes nameRes: Int, modifier: Modifier) {
+    Button(
+        onClick = { /* Do something! */ },
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+    ) {
+        Icon(
+            iconRes,
+            contentDescription = "Localized description",
+            modifier = Modifier.size(ButtonDefaults.IconSize)
+        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text(stringResource(nameRes))
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     PoolOfficeClientComposeTheme(darkTheme = false) {
-        // SwitchPanel(
-        // poolOfficeSwitch = InitializationStateRelay(
-        //  arrayOf(true, false, true, false, true, false), 0,), switchRelay = {poolOffice})
+        ShowButtons(modifier = Modifier)
     }
 }
