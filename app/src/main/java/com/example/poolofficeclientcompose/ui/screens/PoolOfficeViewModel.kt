@@ -1,7 +1,6 @@
 package com.example.poolofficeclientcompose.ui.screens
 
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -18,12 +17,12 @@ import com.example.poolofficeclientcompose.network.RelayData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
 
+const val RELAY_ID_ALL = 256
 sealed interface PoolOfficeUiState {
     data class Success(val combineData: CombinedData) : PoolOfficeUiState
     object Error : PoolOfficeUiState
@@ -141,6 +140,61 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                     }
                 } catch (e: IOException) {
                     Log.d("Debug", "9")
+                    PoolOfficeUiState.Error
+                }
+            }
+        }
+    }
+
+    fun switchAllRelay(relayState: Boolean){
+        viewModelScope.launch {
+            _poolInfoDataUiState.update {
+                try {
+                    val state = if (relayState) 1 else 0
+                    val relaySwitchState = poolOfficeRepository.switchRelay(RELAY_ID_ALL, state)
+                    when (relaySwitchState) {
+                        is NetworkResult.Success -> {
+                            val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
+                            if (rezRelaySwitchState.relayNumber ==
+                                RELAY_ID_ALL && rezRelaySwitchState.errorCode ==
+                                0 && rezRelaySwitchState.stateRelay ==
+                                relayState
+                            ) {
+                                when (_poolInfoDataUiState.value) {
+                                    is PoolOfficeUiState.Success -> {
+                                        val sensorsData =
+                                            (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
+                                        var relaysData =
+                                            (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
+                                        relaysData.relayAnswer = Array(8){relayState}
+                                        PoolOfficeUiState.Success(
+                                            CombinedData(
+                                                sensorsData,
+                                                relaysData
+                                            )
+                                        )
+                                    }
+
+                                    else -> {
+                                        PoolOfficeUiState.Error
+                                    }
+                                }
+
+                            } else {
+                                PoolOfficeUiState.Error
+                            }
+
+                        }
+
+                        is NetworkResult.Exception -> {
+                            PoolOfficeUiState.Error
+                        }
+
+                        is NetworkResult.Error -> {
+                            PoolOfficeUiState.Error
+                        }
+                    }
+                } catch (e: IOException) {
                     PoolOfficeUiState.Error
                 }
             }

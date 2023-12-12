@@ -46,7 +46,8 @@ fun PoolOfficeApp(
                 switchRelay = poolOfficeViewModel::switchRelay,
                 reloadAllData = poolOfficeViewModel::getPoolInfo,
                 appearanceSwitch = appearanceSwitch,
-                appearanceSensor = appearanceSensor
+                appearanceSensor = appearanceSensor,
+                switchAllRelay = poolOfficeViewModel::switchAllRelay
             )
         }
 

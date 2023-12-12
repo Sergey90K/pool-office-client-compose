@@ -69,6 +69,7 @@ fun HomeScreen(
     reloadAllData: () -> Unit,
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
+    switchAllRelay:(stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (poolInfoDataUiState) {
@@ -78,7 +79,9 @@ fun HomeScreen(
                 poolOfficeSwitch = poolInfoDataUiState.combineData.relayData,
                 switchRelay = switchRelay,
                 appearanceSwitch = appearanceSwitch,
-                appearanceSensor = appearanceSensor
+                appearanceSensor = appearanceSensor,
+                switchAllRelay = switchAllRelay,
+                modifier = modifier
             )
         }
 
@@ -100,6 +103,7 @@ fun SuccessScreen(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
+    switchAllRelay:(stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     AllPanelsInOne(
@@ -108,6 +112,7 @@ fun SuccessScreen(
         switchRelay = switchRelay,
         appearanceSwitch = appearanceSwitch,
         appearanceSensor = appearanceSensor,
+        switchAllRelay = switchAllRelay,
         modifier = modifier.fillMaxSize()
     )
 }
@@ -120,6 +125,7 @@ fun AllPanelsInOne(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
+    switchAllRelay:(stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val innerData =
@@ -174,7 +180,9 @@ fun AllPanelsInOne(
                 )
             }
             item(){
-                ShowButtons(modifier = Modifier
+                ShowButtons(
+                    switchAllRelay =  switchAllRelay,
+                    modifier = Modifier
                     .padding(dimensionResource(R.dimen.padding_small))
                     .animateEnterExit(enter = slideInVertically(
                         animationSpec = spring(
@@ -274,14 +282,12 @@ fun RelaySwitch(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var checkedState by remember { mutableStateOf(stateOnOff) }
     Switch(
         checked = stateOnOff,
         onCheckedChange = {
             switchRelay(relayId, it)
-            checkedState = it
         },
-        thumbContent = if (checkedState) {
+        thumbContent = if (stateOnOff) {
             {
                 Icon(
                     imageVector = Icons.Filled.Check,
@@ -456,7 +462,10 @@ fun PoolOfficeTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modif
 }
 
 @Composable
-fun ShowButtons(modifier: Modifier) {
+fun ShowButtons(
+    switchAllRelay:(stateOnOff: Boolean) -> Unit,
+    modifier: Modifier
+) {
     Card(
         modifier = modifier
     ) {
@@ -474,18 +483,18 @@ fun ShowButtons(modifier: Modifier) {
                     .fillMaxWidth()
                     .padding(dimensionResource(R.dimen.padding_small))
             ) {
-                ButtonOnnOff(Icons.Filled.Clear, R.string.turn_off_everything, modifier)
+                ButtonOnOff(valueButton = false, switchAllRelay = switchAllRelay ,Icons.Filled.Clear, R.string.turn_off_everything, modifier)
                 Spacer(Modifier.weight(0.5f))
-                ButtonOnnOff(Icons.Filled.Check, R.string.enable_everything, modifier)
+                ButtonOnOff(valueButton = true, switchAllRelay = switchAllRelay, Icons.Filled.Check, R.string.enable_everything, modifier)
             }
         }
     }
 }
 
 @Composable
-fun ButtonOnnOff(iconRes: ImageVector, @StringRes nameRes: Int, modifier: Modifier) {
+fun ButtonOnOff(valueButton: Boolean, switchAllRelay:(stateOnOff: Boolean) -> Unit, iconRes: ImageVector, @StringRes nameRes: Int, modifier: Modifier) {
     Button(
-        onClick = { /* Do something! */ },
+        onClick = { switchAllRelay(valueButton) },
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding
     ) {
         Icon(
@@ -502,6 +511,6 @@ fun ButtonOnnOff(iconRes: ImageVector, @StringRes nameRes: Int, modifier: Modifi
 @Composable
 fun GreetingPreview() {
     PoolOfficeClientComposeTheme(darkTheme = false) {
-        ShowButtons(modifier = Modifier)
+      //  ShowButtons(modifier = Modifier)
     }
 }
