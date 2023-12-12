@@ -86,6 +86,7 @@ fun HomeScreen(
         }
 
         is PoolOfficeUiState.Error -> {
+
             ErrorScreen(retryAction = reloadAllData, modifier = modifier.fillMaxSize())
         }
 

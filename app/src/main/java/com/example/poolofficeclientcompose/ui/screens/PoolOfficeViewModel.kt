@@ -1,6 +1,5 @@
 package com.example.poolofficeclientcompose.ui.screens
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -23,13 +22,19 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 const val RELAY_ID_ALL = 256
+
 sealed interface PoolOfficeUiState {
     data class Success(val combineData: CombinedData) : PoolOfficeUiState
-    object Error : PoolOfficeUiState
+    data class Error(val errorCode: Int = 1) : PoolOfficeUiState
     object Loading : PoolOfficeUiState
 }
 
 class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository) : ViewModel() {
+    private val errorProgram = 1
+    private val errorSensor = 2
+    private val errorRelay = 3
+    private val errorLoading = 4
+    private val errorData = 5
 
     private val _poolInfoDataUiState =
         MutableStateFlow<PoolOfficeUiState>(PoolOfficeUiState.Loading)
@@ -51,31 +56,40 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                             val relayData = poolOfficeRepository.getInitializationState()
                             when (relayData) {
                                 is NetworkResult.Success -> {
-                                    PoolOfficeUiState.Success(
-                                        CombinedData(
-                                            sensorsData.bodyData as PoolInfoData,
-                                            relayData.bodyData as InitializationStateRelay
-                                        )
-                                    )
+                                    sensorsData.bodyData as PoolInfoData
+                                    relayData.bodyData as InitializationStateRelay
+                                    if (sensorsData.bodyData.errorCode != errorSensor) {
+                                        if (relayData.bodyData.errorCode != errorRelay) {
+                                            PoolOfficeUiState.Success(
+                                                CombinedData(
+                                                    sensorsData.bodyData,
+                                                    relayData.bodyData
+                                                )
+                                            )
+                                        } else {
+                                            PoolOfficeUiState.Error(errorRelay)
+                                        }
+                                    } else {
+                                        PoolOfficeUiState.Error(errorSensor)
+                                    }
                                 }
 
                                 is NetworkResult.Exception ->
-                                    PoolOfficeUiState.Error
+                                    PoolOfficeUiState.Error(errorLoading)
 
                                 is NetworkResult.Error ->
-                                    PoolOfficeUiState.Error
+                                    PoolOfficeUiState.Error(errorData)
                             }
                         }
 
                         is NetworkResult.Exception ->
-                            PoolOfficeUiState.Error
+                            PoolOfficeUiState.Error(errorLoading)
 
                         is NetworkResult.Error ->
-                            PoolOfficeUiState.Error
-
+                            PoolOfficeUiState.Error(errorData)
                     }
                 } catch (e: IOException) {
-                    PoolOfficeUiState.Error
+                    PoolOfficeUiState.Error(errorProgram)
                 }
             }
         }
@@ -89,23 +103,18 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                     val relaySwitchState = poolOfficeRepository.switchRelay(relayId, state)
                     when (relaySwitchState) {
                         is NetworkResult.Success -> {
-                            Log.d("Debug", "1")
                             val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
                             if (rezRelaySwitchState.relayNumber ==
-                                relayId && rezRelaySwitchState.errorCode ==
-                                0 && rezRelaySwitchState.stateRelay ==
+                                relayId && rezRelaySwitchState.errorCode !=
+                                errorRelay && rezRelaySwitchState.stateRelay ==
                                 relayState
                             ) {
-                                Log.d("Debug", "3")
                                 when (_poolInfoDataUiState.value) {
                                     is PoolOfficeUiState.Success -> {
-                                        Log.d("Debug", "4")
                                         val sensorsData =
                                             (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
-                                        Log.d("Debug", sensorsData.toString())
                                         val relaysData =
                                             (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
-                                        Log.d("Debug", relaysData.relayAnswer.size.toString())
                                         relaysData.relayAnswer[relayId] = relayState
                                         PoolOfficeUiState.Success(
                                             CombinedData(
@@ -116,37 +125,32 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                     }
 
                                     else -> {
-                                        Log.d("Debug", "5")
-                                        PoolOfficeUiState.Error
+                                        PoolOfficeUiState.Error(errorProgram)
                                     }
                                 }
 
                             } else {
-                                Log.d("Debug", "6")
-                                PoolOfficeUiState.Error
+                                PoolOfficeUiState.Error(errorRelay)
                             }
 
                         }
 
                         is NetworkResult.Exception -> {
-                            Log.d("Debug", "7")
-                            PoolOfficeUiState.Error
+                            PoolOfficeUiState.Error(errorLoading)
                         }
 
                         is NetworkResult.Error -> {
-                            Log.d("Debug", "8")
-                            PoolOfficeUiState.Error
+                            PoolOfficeUiState.Error(errorData)
                         }
                     }
                 } catch (e: IOException) {
-                    Log.d("Debug", "9")
-                    PoolOfficeUiState.Error
+                    PoolOfficeUiState.Error(errorProgram)
                 }
             }
         }
     }
 
-    fun switchAllRelay(relayState: Boolean){
+    fun switchAllRelay(relayState: Boolean) {
         viewModelScope.launch {
             _poolInfoDataUiState.update {
                 try {
@@ -156,8 +160,8 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                         is NetworkResult.Success -> {
                             val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
                             if (rezRelaySwitchState.relayNumber ==
-                                RELAY_ID_ALL && rezRelaySwitchState.errorCode ==
-                                0 && rezRelaySwitchState.stateRelay ==
+                                RELAY_ID_ALL && rezRelaySwitchState.errorCode !=
+                                errorRelay && rezRelaySwitchState.stateRelay ==
                                 relayState
                             ) {
                                 when (_poolInfoDataUiState.value) {
@@ -166,7 +170,7 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                             (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
                                         var relaysData =
                                             (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
-                                        relaysData.relayAnswer = Array(8){relayState}
+                                        relaysData.relayAnswer = Array(8) { relayState }
                                         PoolOfficeUiState.Success(
                                             CombinedData(
                                                 sensorsData,
@@ -176,26 +180,26 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                     }
 
                                     else -> {
-                                        PoolOfficeUiState.Error
+                                        PoolOfficeUiState.Error(errorProgram)
                                     }
                                 }
 
                             } else {
-                                PoolOfficeUiState.Error
+                                PoolOfficeUiState.Error(errorRelay)
                             }
 
                         }
 
                         is NetworkResult.Exception -> {
-                            PoolOfficeUiState.Error
+                            PoolOfficeUiState.Error(errorLoading)
                         }
 
                         is NetworkResult.Error -> {
-                            PoolOfficeUiState.Error
+                            PoolOfficeUiState.Error(errorData)
                         }
                     }
                 } catch (e: IOException) {
-                    PoolOfficeUiState.Error
+                    PoolOfficeUiState.Error(errorProgram)
                 }
             }
         }
