@@ -100,6 +100,14 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     }
 
     fun switchRelay(relayId: Int, relayState: Boolean) {
+        switchForRelay(relayId, relayState)
+    }
+
+    fun switchAllRelay(relayState: Boolean) {
+       switchForRelay(RELAY_ID_ALL, relayState)
+    }
+
+    private fun switchForRelay(relayId: Int, relayState: Boolean) {
         viewModelScope.launch {
             _poolInfoDataUiState.update {
                 try {
@@ -119,62 +127,11 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                             (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
                                         val relaysData =
                                             (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
-                                        relaysData.relayAnswer[relayId] = relayState
-                                        PoolOfficeUiState.Success(
-                                            CombinedData(
-                                                sensorsData,
-                                                relaysData
-                                            )
-                                        )
-                                    }
-
-                                    else -> {
-                                        PoolOfficeUiState.Error(getErrorDescription(errorProgram))
-                                    }
-                                }
-
-                            } else {
-                                PoolOfficeUiState.Error(getErrorDescription(errorRelay))
-                            }
-
-                        }
-
-                        is NetworkResult.Exception -> {
-                            PoolOfficeUiState.Error(getErrorDescription(errorLoading))
-                        }
-
-                        is NetworkResult.Error -> {
-                            PoolOfficeUiState.Error(getErrorDescription(errorData))
-                        }
-                    }
-                } catch (e: IOException) {
-                    PoolOfficeUiState.Error(getErrorDescription(errorProgram))
-                }
-            }
-        }
-    }
-
-    fun switchAllRelay(relayState: Boolean) {
-        viewModelScope.launch {
-            _poolInfoDataUiState.update {
-                try {
-                    val state = if (relayState) 1 else 0
-                    val relaySwitchState = poolOfficeRepository.switchRelay(RELAY_ID_ALL, state)
-                    when (relaySwitchState) {
-                        is NetworkResult.Success -> {
-                            val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
-                            if (rezRelaySwitchState.relayNumber ==
-                                RELAY_ID_ALL && rezRelaySwitchState.errorCode !=
-                                errorRelay && rezRelaySwitchState.stateRelay ==
-                                relayState
-                            ) {
-                                when (_poolInfoDataUiState.value) {
-                                    is PoolOfficeUiState.Success -> {
-                                        val sensorsData =
-                                            (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.sensorsData
-                                        var relaysData =
-                                            (_poolInfoDataUiState.value as PoolOfficeUiState.Success).combineData.relayData
-                                        relaysData.relayAnswer = Array(8) { relayState }
+                                        if (relayId == RELAY_ID_ALL) {
+                                            relaysData.relayAnswer = Array(8) { relayState }
+                                        } else {
+                                            relaysData.relayAnswer[relayId] = relayState
+                                        }
                                         PoolOfficeUiState.Success(
                                             CombinedData(
                                                 sensorsData,
