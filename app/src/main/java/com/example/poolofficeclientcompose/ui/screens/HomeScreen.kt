@@ -24,10 +24,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -67,6 +71,7 @@ fun HomeScreen(
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
+    refreshState: Boolean,
     modifier: Modifier = Modifier
 ) {
     when (poolInfoDataUiState) {
@@ -78,6 +83,8 @@ fun HomeScreen(
                 appearanceSwitch = appearanceSwitch,
                 appearanceSensor = appearanceSensor,
                 switchAllRelay = switchAllRelay,
+                reloadAllData = reloadAllData,
+                refreshState = refreshState,
                 modifier = modifier
             )
         }
@@ -104,6 +111,8 @@ fun SuccessScreen(
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
+    reloadAllData: () -> Unit,
+    refreshState: Boolean,
     modifier: Modifier = Modifier
 ) {
     AllPanelsInOne(
@@ -113,11 +122,13 @@ fun SuccessScreen(
         appearanceSwitch = appearanceSwitch,
         appearanceSensor = appearanceSensor,
         switchAllRelay = switchAllRelay,
+        reloadAllData = reloadAllData,
+        refreshState = refreshState,
         modifier = modifier.fillMaxSize()
     )
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun AllPanelsInOne(
     poolOfficeSensor: PoolInfoData,
@@ -126,6 +137,8 @@ fun AllPanelsInOne(
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
+    reloadAllData: () -> Unit,
+    refreshState: Boolean,
     modifier: Modifier = Modifier
 ) {
     val innerData =
@@ -143,54 +156,58 @@ fun AllPanelsInOne(
         exit = fadeOut(),
         modifier = modifier
     ) {
-        LazyColumn() {
-            itemsIndexed(innerData) { index, sensor ->
-                TemperatureOrPumpItem(
-                    sensorIndicator = sensor,
-                    isTemperature = (index < 3),
-                    appearanceSensor = appearanceSensor[index],
-                    modifier = Modifier
-                        .padding(dimensionResource(R.dimen.padding_small))
-                        .animateEnterExit(enter = slideInVertically(
-                            animationSpec = spring(
-                                stiffness = Spring.StiffnessVeryLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            ), initialOffsetY = { it * (index + 1) }
-                        )
-                        )
-                )
+        val state = rememberPullRefreshState(refreshState, reloadAllData)
+        Box(Modifier.pullRefresh(state)) {
+            LazyColumn() {
+                itemsIndexed(innerData) { index, sensor ->
+                    TemperatureOrPumpItem(
+                        sensorIndicator = sensor,
+                        isTemperature = (index < 3),
+                        appearanceSensor = appearanceSensor[index],
+                        modifier = Modifier
+                            .padding(dimensionResource(R.dimen.padding_small))
+                            .animateEnterExit(enter = slideInVertically(
+                                animationSpec = spring(
+                                    stiffness = Spring.StiffnessVeryLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                ), initialOffsetY = { it * (index + 1) }
+                            )
+                            )
+                    )
+                }
+                itemsIndexed(poolOfficeSwitch.relayAnswer) { index, relay ->
+                    SwitchItem(
+                        index,
+                        relay,
+                        switchRelay,
+                        appearanceSwitch[index],
+                        modifier = Modifier
+                            .padding(dimensionResource(R.dimen.padding_small))
+                            .animateEnterExit(enter = slideInVertically(
+                                animationSpec = spring(
+                                    stiffness = Spring.StiffnessVeryLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                ), initialOffsetY = { it * (index + 1 + innerData.size) }
+                            )
+                            )
+                    )
+                }
+                item() {
+                    ShowButtons(
+                        switchAllRelay = switchAllRelay,
+                        modifier = Modifier
+                            .padding(dimensionResource(R.dimen.padding_small))
+                            .animateEnterExit(enter = slideInVertically(
+                                animationSpec = spring(
+                                    stiffness = Spring.StiffnessVeryLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                ),
+                                initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
+                            )
+                            ))
+                }
             }
-            itemsIndexed(poolOfficeSwitch.relayAnswer) { index, relay ->
-                SwitchItem(
-                    index,
-                    relay,
-                    switchRelay,
-                    appearanceSwitch[index],
-                    modifier = Modifier
-                        .padding(dimensionResource(R.dimen.padding_small))
-                        .animateEnterExit(enter = slideInVertically(
-                            animationSpec = spring(
-                                stiffness = Spring.StiffnessVeryLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            ), initialOffsetY = { it * (index + 1 + innerData.size) }
-                        )
-                        )
-                )
-            }
-            item() {
-                ShowButtons(
-                    switchAllRelay = switchAllRelay,
-                    modifier = Modifier
-                        .padding(dimensionResource(R.dimen.padding_small))
-                        .animateEnterExit(enter = slideInVertically(
-                            animationSpec = spring(
-                                stiffness = Spring.StiffnessVeryLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            ),
-                            initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
-                        )
-                        ))
-            }
+            PullRefreshIndicator(true, state, Modifier.align(Alignment.TopCenter))
         }
     }
 }

@@ -29,6 +29,7 @@ fun PoolOfficeApp(
     //val uiState = poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
     val appearanceSwitch = SwitchScreenAndName.switches
     val appearanceSensor = SensorScreenAndName.sensors
+    val refreshState by poolOfficeViewModel.refreshingUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -45,7 +46,8 @@ fun PoolOfficeApp(
                 reloadAllData = poolOfficeViewModel::getPoolInfo,
                 appearanceSwitch = appearanceSwitch,
                 appearanceSensor = appearanceSensor,
-                switchAllRelay = poolOfficeViewModel::switchAllRelay
+                switchAllRelay = poolOfficeViewModel::switchAllRelay,
+                refreshState = refreshState
             )
         }
     }

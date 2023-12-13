@@ -18,7 +18,6 @@ import com.example.poolofficeclientcompose.network.RelayData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -39,9 +38,12 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     private val errorRelay = 3
     private val errorLoading = 4
     private val errorData = 5
+
     private val _poolInfoDataUiState =
         MutableStateFlow<PoolOfficeUiState>(PoolOfficeUiState.Loading)
     var poolInfoDataUiState: StateFlow<PoolOfficeUiState> = _poolInfoDataUiState.asStateFlow()
+    private val _refreshingUiState = MutableStateFlow(false)
+    val refreshingUiState: StateFlow<Boolean> = _refreshingUiState.asStateFlow()
 
     init {
         getPoolInfo()
@@ -49,12 +51,14 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
 
     fun getPoolInfo() {
         viewModelScope.launch {
-            _poolInfoDataUiState.getAndUpdate {
+            _poolInfoDataUiState.update {
+                _refreshingUiState.value = true
                 PoolOfficeUiState.Loading
                 try {
                     val sensorsData = poolOfficeRepository.getSensorData()
                     when (sensorsData) {
                         is NetworkResult.Success -> {
+                            _refreshingUiState.value = false
                             val relayData = poolOfficeRepository.getInitializationState()
                             when (relayData) {
                                 is NetworkResult.Success -> {
@@ -82,15 +86,24 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                 is NetworkResult.Error ->
                                     PoolOfficeUiState.Error(getErrorDescription(errorData))
                             }
+
                         }
 
-                        is NetworkResult.Exception ->
+                        is NetworkResult.Exception -> {
+                            _refreshingUiState.value = false
                             PoolOfficeUiState.Error(getErrorDescription(errorLoading))
+                        }
 
-                        is NetworkResult.Error ->
+
+                        is NetworkResult.Error -> {
+                            _refreshingUiState.value = false
                             PoolOfficeUiState.Error(getErrorDescription(errorData))
+                        }
+
                     }
+
                 } catch (e: IOException) {
+                    _refreshingUiState.value = false
                     PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                 }
             }
