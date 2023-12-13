@@ -29,7 +29,7 @@ class NetworkPoolOfficeRepository(private val poolOfficeApiService: PoolOfficeAp
     }
 
     override suspend fun switchRelay(relayId: Int, state: Int): NetworkResult<RelayData> {
-        return poolOfficeApiService.switchRelay(relayId,state)
+        return poolOfficeApiService.switchRelay(relayId, state)
     }
 
     override suspend fun getInitializationState(): NetworkResult<InitializationStateRelay> {

@@ -93,7 +93,6 @@ fun HomeScreen(
         is PoolOfficeUiState.Loading -> {
             LoadingScreen(modifier = modifier.fillMaxSize())
         }
-
     }
 }
 
@@ -131,13 +130,11 @@ fun AllPanelsInOne(
 ) {
     val innerData =
         listOf(poolOfficeSensor.t1, poolOfficeSensor.t2, poolOfficeSensor.t3, poolOfficeSensor.p1)
-
     val visibleState = remember {
         MutableTransitionState(false).apply {
             targetState = true
         }
     }
-
     AnimatedVisibility(
         visibleState = visibleState,
         enter = fadeIn(
@@ -194,10 +191,8 @@ fun AllPanelsInOne(
                         )
                         ))
             }
-
         }
     }
-
 }
 
 @Composable
@@ -229,7 +224,6 @@ fun SwitchItem(
                 SwitchLabel(appearanceSwitch.nameRes, appearanceSwitch.descriptionRes)
                 Spacer(Modifier.weight(1f))
                 RelaySwitch(relayNumber, stateOnOff, switchRelay)
-
             }
         }
     }
@@ -265,13 +259,11 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
                 text = "Loading",
                 style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier.padding(all = dimensionResource(R.dimen.padding_small))
             )
-
             CircularProgressIndicator(
                 modifier = Modifier.width(150.dp),
                 color = MaterialTheme.colorScheme.secondary,
@@ -315,7 +307,6 @@ fun RelaySwitch(
             uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
             uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
         )
-
     )
 }
 
@@ -375,7 +366,6 @@ fun TemperatureOrPumpItem(
                 TemperatureOrPumpLabel(appearanceSensor.nameRes, appearanceSensor.descriptionRes)
                 Spacer(Modifier.weight(1f))
                 TemperatureOrPumpInfo(sensorIndicator, isTemperature)
-
             }
         }
     }

@@ -7,7 +7,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
 
-internal class NetworkResponseCall <R : Any>(private val delegate: Call<R>):
+internal class NetworkResponseCall<R : Any>(private val delegate: Call<R>) :
     Call<NetworkResult<R>> {
     private val errorCode = 1
     override fun enqueue(callback: Callback<NetworkResult<R>>) {
@@ -26,7 +26,12 @@ internal class NetworkResponseCall <R : Any>(private val delegate: Call<R>):
                     } else {
                         callback.onResponse(
                             this@NetworkResponseCall,
-                            Response.success(NetworkResult.Error(errorCode, "Response is successful but the body is null"))
+                            Response.success(
+                                NetworkResult.Error(
+                                    errorCode,
+                                    "Response is successful but the body is null"
+                                )
+                            )
                         )
                     }
                 } else {
@@ -46,7 +51,12 @@ internal class NetworkResponseCall <R : Any>(private val delegate: Call<R>):
                     } else {
                         callback.onResponse(
                             this@NetworkResponseCall,
-                            Response.success(NetworkResult.Error(code, "Response is successful but the error body is null"))
+                            Response.success(
+                                NetworkResult.Error(
+                                    code,
+                                    "Response is successful but the error body is null"
+                                )
+                            )
                         )
                     }
                 }
@@ -76,4 +86,5 @@ internal class NetworkResponseCall <R : Any>(private val delegate: Call<R>):
 
     override fun request(): Request = delegate.request()
 
-    override fun timeout(): Timeout = delegate.timeout()}
+    override fun timeout(): Timeout = delegate.timeout()
+}

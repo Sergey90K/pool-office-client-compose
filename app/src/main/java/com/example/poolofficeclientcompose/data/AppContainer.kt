@@ -9,7 +9,7 @@ interface AppContainer {
     val poolOfficeRepository: PoolOfficeRepository
 }
 
-class DefaultAppContainer : AppContainer{
+class DefaultAppContainer : AppContainer {
     private val baseUrl = "http://10.0.2.2:8080/"
 
     private val retrofit = Retrofit.Builder()
@@ -25,6 +25,4 @@ class DefaultAppContainer : AppContainer{
     override val poolOfficeRepository: PoolOfficeRepository by lazy {
         NetworkPoolOfficeRepository(retrofitService)
     }
-
-
 }

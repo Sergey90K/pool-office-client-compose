@@ -25,10 +25,8 @@ fun PoolOfficeApp(
         viewModel(factory = PoolOfficeViewModel.Factory)
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
     val uiState by poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
     //val uiState = poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
-
     val appearanceSwitch = SwitchScreenAndName.switches
     val appearanceSensor = SensorScreenAndName.sensors
 
@@ -50,6 +48,5 @@ fun PoolOfficeApp(
                 switchAllRelay = poolOfficeViewModel::switchAllRelay
             )
         }
-
     }
 }

@@ -39,10 +39,8 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     private val errorRelay = 3
     private val errorLoading = 4
     private val errorData = 5
-
     private val _poolInfoDataUiState =
         MutableStateFlow<PoolOfficeUiState>(PoolOfficeUiState.Loading)
-
     var poolInfoDataUiState: StateFlow<PoolOfficeUiState> = _poolInfoDataUiState.asStateFlow()
 
     init {
@@ -104,7 +102,7 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     }
 
     fun switchAllRelay(relayState: Boolean) {
-       switchForRelay(RELAY_ID_ALL, relayState)
+        switchForRelay(RELAY_ID_ALL, relayState)
     }
 
     private fun switchForRelay(relayId: Int, relayState: Boolean) {
@@ -148,7 +146,6 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                             } else {
                                 PoolOfficeUiState.Error(getErrorDescription(errorRelay))
                             }
-
                         }
 
                         is NetworkResult.Exception -> {
@@ -191,7 +188,6 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
             else -> {
                 return R.string.unknown_error
             }
-
         }
     }
 

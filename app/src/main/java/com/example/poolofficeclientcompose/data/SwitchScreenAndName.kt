@@ -44,6 +44,5 @@ object SwitchScreenAndName {
             descriptionRes = R.string.water_management,
             imageRes = R.drawable.water_drop_black_48dp
         )
-
     )
 }

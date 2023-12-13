@@ -24,6 +24,5 @@ object SensorScreenAndName {
             descriptionRes = R.string.pump_indicators,
             imageRes = R.drawable.pump
         )
-
     )
 }
