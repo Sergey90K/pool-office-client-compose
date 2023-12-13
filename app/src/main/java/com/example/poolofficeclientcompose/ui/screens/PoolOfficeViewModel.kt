@@ -1,5 +1,6 @@
 package com.example.poolofficeclientcompose.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -7,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.poolofficeclientcompose.PoolOfficeApplication
+import com.example.poolofficeclientcompose.R
 import com.example.poolofficeclientcompose.data.PoolOfficeRepository
 import com.example.poolofficeclientcompose.network.CombinedData
 import com.example.poolofficeclientcompose.network.InitializationStateRelay
@@ -25,7 +27,9 @@ const val RELAY_ID_ALL = 256
 
 sealed interface PoolOfficeUiState {
     data class Success(val combineData: CombinedData) : PoolOfficeUiState
-    data class Error(val errorCode: Int = 1) : PoolOfficeUiState
+    data class Error(@StringRes val errorCode: Int = R.string.error_initialization) :
+        PoolOfficeUiState
+
     object Loading : PoolOfficeUiState
 }
 
@@ -67,29 +71,29 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                                 )
                                             )
                                         } else {
-                                            PoolOfficeUiState.Error(errorRelay)
+                                            PoolOfficeUiState.Error(getErrorDescription(errorRelay))
                                         }
                                     } else {
-                                        PoolOfficeUiState.Error(errorSensor)
+                                        PoolOfficeUiState.Error(getErrorDescription(errorSensor))
                                     }
                                 }
 
                                 is NetworkResult.Exception ->
-                                    PoolOfficeUiState.Error(errorLoading)
+                                    PoolOfficeUiState.Error(getErrorDescription(errorLoading))
 
                                 is NetworkResult.Error ->
-                                    PoolOfficeUiState.Error(errorData)
+                                    PoolOfficeUiState.Error(getErrorDescription(errorData))
                             }
                         }
 
                         is NetworkResult.Exception ->
-                            PoolOfficeUiState.Error(errorLoading)
+                            PoolOfficeUiState.Error(getErrorDescription(errorLoading))
 
                         is NetworkResult.Error ->
-                            PoolOfficeUiState.Error(errorData)
+                            PoolOfficeUiState.Error(getErrorDescription(errorData))
                     }
                 } catch (e: IOException) {
-                    PoolOfficeUiState.Error(errorProgram)
+                    PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                 }
             }
         }
@@ -125,26 +129,26 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                     }
 
                                     else -> {
-                                        PoolOfficeUiState.Error(errorProgram)
+                                        PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                                     }
                                 }
 
                             } else {
-                                PoolOfficeUiState.Error(errorRelay)
+                                PoolOfficeUiState.Error(getErrorDescription(errorRelay))
                             }
 
                         }
 
                         is NetworkResult.Exception -> {
-                            PoolOfficeUiState.Error(errorLoading)
+                            PoolOfficeUiState.Error(getErrorDescription(errorLoading))
                         }
 
                         is NetworkResult.Error -> {
-                            PoolOfficeUiState.Error(errorData)
+                            PoolOfficeUiState.Error(getErrorDescription(errorData))
                         }
                     }
                 } catch (e: IOException) {
-                    PoolOfficeUiState.Error(errorProgram)
+                    PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                 }
             }
         }
@@ -180,28 +184,57 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                                     }
 
                                     else -> {
-                                        PoolOfficeUiState.Error(errorProgram)
+                                        PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                                     }
                                 }
 
                             } else {
-                                PoolOfficeUiState.Error(errorRelay)
+                                PoolOfficeUiState.Error(getErrorDescription(errorRelay))
                             }
 
                         }
 
                         is NetworkResult.Exception -> {
-                            PoolOfficeUiState.Error(errorLoading)
+                            PoolOfficeUiState.Error(getErrorDescription(errorLoading))
                         }
 
                         is NetworkResult.Error -> {
-                            PoolOfficeUiState.Error(errorData)
+                            PoolOfficeUiState.Error(getErrorDescription(errorData))
                         }
                     }
                 } catch (e: IOException) {
-                    PoolOfficeUiState.Error(errorProgram)
+                    PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                 }
             }
+        }
+    }
+
+    private fun getErrorDescription(errorCode: Int): Int {
+        when (errorCode) {
+            errorProgram -> {
+                return R.string.error_in_program
+            }
+
+            errorSensor -> {
+                return R.string.error_in_sensor
+            }
+
+            errorRelay -> {
+                return R.string.error_in_relay
+            }
+
+            errorLoading -> {
+                return R.string.error_in_loading
+            }
+
+            errorData -> {
+                return R.string.error_in_data
+            }
+
+            else -> {
+                return R.string.unknown_error
+            }
+
         }
     }
 

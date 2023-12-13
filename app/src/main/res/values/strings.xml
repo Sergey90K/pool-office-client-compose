@@ -40,4 +40,11 @@
     <string name="temperature_in_the_house">Temperature in the house</string>
     <string name="enable_everything">Enable everything</string>
     <string name="turn_off_everything">Turn off everything</string>
+    <string name="error_in_program">Error in Program</string>
+    <string name="error_in_sensor">Error in Sensor</string>
+    <string name="error_in_relay">Error in Relay</string>
+    <string name="error_in_loading">"Error in Loading "</string>
+    <string name="error_in_data">Error in Data</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="error_initialization">Error Initialization</string>
 </resources>

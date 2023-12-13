@@ -41,10 +41,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,7 +66,7 @@ fun HomeScreen(
     reloadAllData: () -> Unit,
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
-    switchAllRelay:(stateOnOff: Boolean) -> Unit,
+    switchAllRelay: (stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (poolInfoDataUiState) {
@@ -86,8 +83,11 @@ fun HomeScreen(
         }
 
         is PoolOfficeUiState.Error -> {
-
-            ErrorScreen(retryAction = reloadAllData, modifier = modifier.fillMaxSize())
+            ErrorScreen(
+                descriptionError = poolInfoDataUiState.errorCode,
+                retryAction = reloadAllData,
+                modifier = modifier.fillMaxSize()
+            )
         }
 
         is PoolOfficeUiState.Loading -> {
@@ -104,7 +104,7 @@ fun SuccessScreen(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
-    switchAllRelay:(stateOnOff: Boolean) -> Unit,
+    switchAllRelay: (stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     AllPanelsInOne(
@@ -126,7 +126,7 @@ fun AllPanelsInOne(
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     appearanceSwitch: List<AppearanceSwitch>,
     appearanceSensor: List<AppearanceSensor>,
-    switchAllRelay:(stateOnOff: Boolean) -> Unit,
+    switchAllRelay: (stateOnOff: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val innerData =
@@ -180,18 +180,19 @@ fun AllPanelsInOne(
                         )
                 )
             }
-            item(){
+            item() {
                 ShowButtons(
-                    switchAllRelay =  switchAllRelay,
+                    switchAllRelay = switchAllRelay,
                     modifier = Modifier
-                    .padding(dimensionResource(R.dimen.padding_small))
-                    .animateEnterExit(enter = slideInVertically(
-                        animationSpec = spring(
-                            stiffness = Spring.StiffnessVeryLow,
-                            dampingRatio = Spring.DampingRatioLowBouncy
-                        ), initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
-                    )
-                    ))
+                        .padding(dimensionResource(R.dimen.padding_small))
+                        .animateEnterExit(enter = slideInVertically(
+                            animationSpec = spring(
+                                stiffness = Spring.StiffnessVeryLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            ),
+                            initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
+                        )
+                        ))
             }
 
         }
@@ -235,7 +236,11 @@ fun SwitchItem(
 }
 
 @Composable
-fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreen(
+    @StringRes descriptionError: Int,
+    retryAction: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -245,7 +250,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
             painter = painterResource(id = R.drawable.ic_connection_error),
             contentDescription = stringResource(R.string.connection_error)
         )
-        Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
+        Text(text = stringResource(descriptionError), modifier = Modifier.padding(16.dp))
         Button(onClick = retryAction) {
             Text(stringResource(R.string.retry))
         }
@@ -464,7 +469,7 @@ fun PoolOfficeTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modif
 
 @Composable
 fun ShowButtons(
-    switchAllRelay:(stateOnOff: Boolean) -> Unit,
+    switchAllRelay: (stateOnOff: Boolean) -> Unit,
     modifier: Modifier
 ) {
     Card(
@@ -484,16 +489,34 @@ fun ShowButtons(
                     .fillMaxWidth()
                     .padding(dimensionResource(R.dimen.padding_small))
             ) {
-                ButtonOnOff(valueButton = false, switchAllRelay = switchAllRelay ,Icons.Filled.Clear, R.string.turn_off_everything, modifier)
+                ButtonOnOff(
+                    valueButton = false,
+                    switchAllRelay = switchAllRelay,
+                    Icons.Filled.Clear,
+                    R.string.turn_off_everything,
+                    modifier
+                )
                 Spacer(Modifier.weight(0.5f))
-                ButtonOnOff(valueButton = true, switchAllRelay = switchAllRelay, Icons.Filled.Check, R.string.enable_everything, modifier)
+                ButtonOnOff(
+                    valueButton = true,
+                    switchAllRelay = switchAllRelay,
+                    Icons.Filled.Check,
+                    R.string.enable_everything,
+                    modifier
+                )
             }
         }
     }
 }
 
 @Composable
-fun ButtonOnOff(valueButton: Boolean, switchAllRelay:(stateOnOff: Boolean) -> Unit, iconRes: ImageVector, @StringRes nameRes: Int, modifier: Modifier) {
+fun ButtonOnOff(
+    valueButton: Boolean,
+    switchAllRelay: (stateOnOff: Boolean) -> Unit,
+    iconRes: ImageVector,
+    @StringRes nameRes: Int,
+    modifier: Modifier
+) {
     Button(
         onClick = { switchAllRelay(valueButton) },
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding
@@ -512,6 +535,6 @@ fun ButtonOnOff(valueButton: Boolean, switchAllRelay:(stateOnOff: Boolean) -> Un
 @Composable
 fun GreetingPreview() {
     PoolOfficeClientComposeTheme(darkTheme = false) {
-      //  ShowButtons(modifier = Modifier)
+        //  ShowButtons(modifier = Modifier)
     }
 }
