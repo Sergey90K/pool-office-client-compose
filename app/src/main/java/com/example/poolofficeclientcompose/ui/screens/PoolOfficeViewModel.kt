@@ -121,11 +121,13 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     private fun switchForRelay(relayId: Int, relayState: Boolean) {
         viewModelScope.launch {
             _poolInfoDataUiState.update {
+                _refreshingUiState.value = true
                 try {
                     val state = if (relayState) 1 else 0
                     val relaySwitchState = poolOfficeRepository.switchRelay(relayId, state)
                     when (relaySwitchState) {
                         is NetworkResult.Success -> {
+                            _refreshingUiState.value = false
                             val rezRelaySwitchState = relaySwitchState.bodyData as RelayData
                             if (rezRelaySwitchState.relayNumber ==
                                 relayId && rezRelaySwitchState.errorCode !=
@@ -162,14 +164,17 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
                         }
 
                         is NetworkResult.Exception -> {
+                            _refreshingUiState.value = false
                             PoolOfficeUiState.Error(getErrorDescription(errorLoading))
                         }
 
                         is NetworkResult.Error -> {
+                            _refreshingUiState.value = false
                             PoolOfficeUiState.Error(getErrorDescription(errorData))
                         }
                     }
                 } catch (e: IOException) {
+                    _refreshingUiState.value = false
                     PoolOfficeUiState.Error(getErrorDescription(errorProgram))
                 }
             }
