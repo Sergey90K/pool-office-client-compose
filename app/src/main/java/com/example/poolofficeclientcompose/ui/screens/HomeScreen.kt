@@ -1,5 +1,6 @@
 package com.example.poolofficeclientcompose.ui.screens
 
+import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
@@ -72,6 +73,8 @@ fun HomeScreen(
     appearanceSensor: List<AppearanceSensor>,
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
     refreshState: Boolean,
+    showNotification:(message:String, context: Context) -> Unit,
+    context: Context,
     modifier: Modifier = Modifier
 ) {
     when (poolInfoDataUiState) {
@@ -90,6 +93,7 @@ fun HomeScreen(
         }
 
         is PoolOfficeUiState.Error -> {
+            showNotification(stringResource(R.string.please_check_if_you_are_connected_to_your_wi_fi_network), context )
             ErrorScreen(
                 descriptionError = poolInfoDataUiState.errorCode,
                 retryAction = reloadAllData,

@@ -47,4 +47,9 @@
     <string name="error_in_data">Error in Data</string>
     <string name="unknown_error">Unknown Error</string>
     <string name="error_initialization">Error Initialization</string>
+    <string name="channel_name">Pool Office Client Notifications</string>
+    <string name="channel_description">Shows notifications for Pool Office Client</string>
+    <string name="dfdfdf">dfdfdf</string>
+    <string name="pool_office_client_message">Pool Office Client Message</string>
+    <string name="please_check_if_you_are_connected_to_your_wi_fi_network">Please check if you are connected to your Wi-Fi network</string>
 </resources>

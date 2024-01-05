@@ -11,6 +11,7 @@ import com.example.poolofficeclientcompose.ui.PoolOfficeApp
 import com.example.poolofficeclientcompose.ui.theme.PoolOfficeClientComposeTheme
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PoolOfficeApp()
+                    PoolOfficeApp(this)
+
                 }
             }
         }

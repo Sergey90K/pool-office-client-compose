@@ -1,5 +1,6 @@
 package com.example.poolofficeclientcompose.ui.screens
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.poolofficeclientcompose.PoolOfficeApplication
 import com.example.poolofficeclientcompose.R
+import com.example.poolofficeclientcompose.utils.makeNotification
 import com.example.poolofficeclientcompose.data.PoolOfficeRepository
 import com.example.poolofficeclientcompose.network.CombinedData
 import com.example.poolofficeclientcompose.network.InitializationStateRelay
@@ -44,6 +46,7 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     var poolInfoDataUiState: StateFlow<PoolOfficeUiState> = _poolInfoDataUiState.asStateFlow()
     private val _refreshingUiState = MutableStateFlow(false)
     val refreshingUiState: StateFlow<Boolean> = _refreshingUiState.asStateFlow()
+    private val showNotifications = MutableStateFlow(false)
 
     init {
         getPoolInfo()
@@ -184,28 +187,40 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     private fun getErrorDescription(errorCode: Int): Int {
         when (errorCode) {
             errorProgram -> {
+                showNotifications.value = false
                 return R.string.error_in_program
             }
 
             errorSensor -> {
+                showNotifications.value = false
                 return R.string.error_in_sensor
             }
 
             errorRelay -> {
+                showNotifications.value = false
                 return R.string.error_in_relay
             }
 
             errorLoading -> {
+                showNotifications.value = true
                 return R.string.error_in_loading
             }
 
             errorData -> {
+                showNotifications.value = false
                 return R.string.error_in_data
             }
 
             else -> {
+                showNotifications.value = false
                 return R.string.unknown_error
             }
+        }
+    }
+
+    fun showNotification(message: String, context: Context) {
+        if (showNotifications.value){
+            makeNotification(message, context)
         }
     }
 
