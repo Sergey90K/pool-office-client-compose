@@ -1,5 +1,6 @@
 package com.example.poolofficeclientcompose.ui
 
+import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,7 +21,7 @@ import com.example.poolofficeclientcompose.data.SwitchScreenAndName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PoolOfficeApp(
+fun PoolOfficeApp(context: Context,
     poolOfficeViewModel: PoolOfficeViewModel =
         viewModel(factory = PoolOfficeViewModel.Factory)
 ) {
@@ -47,7 +48,9 @@ fun PoolOfficeApp(
                 appearanceSwitch = appearanceSwitch,
                 appearanceSensor = appearanceSensor,
                 switchAllRelay = poolOfficeViewModel::switchAllRelay,
-                refreshState = refreshState
+                refreshState = refreshState,
+                showNotification = poolOfficeViewModel::showNotification,
+                context = context
             )
         }
     }
