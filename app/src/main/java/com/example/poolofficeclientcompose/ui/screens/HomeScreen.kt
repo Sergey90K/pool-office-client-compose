@@ -12,8 +12,12 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -43,6 +48,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -66,9 +72,11 @@ import com.example.poolofficeclientcompose.data.AppearanceSwitch
 import com.example.poolofficeclientcompose.network.InitializationStateRelay
 import com.example.poolofficeclientcompose.network.PoolInfoData
 import com.example.poolofficeclientcompose.ui.theme.PoolOfficeClientComposeTheme
+import kotlin.reflect.KFunction1
 
 @Composable
 fun HomeScreen(
+    settingUiState: Boolean,
     poolInfoDataUiState: PoolOfficeUiState,
     switchRelay: (relayId: Int, stateOnOff: Boolean) -> Unit,
     reloadAllData: () -> Unit,
@@ -88,6 +96,7 @@ fun HomeScreen(
         when (uiStateIn) {
             is PoolOfficeUiState.Success -> {
                 SuccessScreen(
+                    settingUiState = settingUiState,
                     poolOfficeSensor = uiStateIn.combineData.sensorsData,
                     poolOfficeSwitch = uiStateIn.combineData.relayData,
                     switchRelay = switchRelay,
@@ -129,9 +138,11 @@ fun SuccessScreen(
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
     reloadAllData: () -> Unit,
     refreshState: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    settingUiState: Boolean
 ) {
     AllPanelsInOne(
+        settingUiState = settingUiState,
         poolOfficeSensor = poolOfficeSensor,
         poolOfficeSwitch = poolOfficeSwitch,
         switchRelay = switchRelay,
@@ -155,7 +166,8 @@ fun AllPanelsInOne(
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
     reloadAllData: () -> Unit,
     refreshState: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    settingUiState: Boolean
 ) {
     val innerData =
         listOf(poolOfficeSensor.t1, poolOfficeSensor.t2, poolOfficeSensor.t3, poolOfficeSensor.p1)
@@ -209,18 +221,24 @@ fun AllPanelsInOne(
                     )
                 }
                 item() {
-                    ShowButtons(
-                        switchAllRelay = switchAllRelay,
-                        modifier = Modifier
-                            .padding(dimensionResource(R.dimen.padding_small))
-                            .animateEnterExit(enter = slideInVertically(
-                                animationSpec = spring(
-                                    stiffness = Spring.StiffnessVeryLow,
-                                    dampingRatio = Spring.DampingRatioLowBouncy
-                                ),
-                                initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
-                            )
-                            ))
+                    AnimatedVisibility(
+                        settingUiState,
+                        enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+                        exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
+                    ) {
+                        ShowButtons(
+                            switchAllRelay = switchAllRelay,
+                            modifier = Modifier
+                                .padding(dimensionResource(R.dimen.padding_small))
+                                .animateEnterExit(enter = slideInVertically(
+                                    animationSpec = spring(
+                                        stiffness = Spring.StiffnessVeryLow,
+                                        dampingRatio = Spring.DampingRatioLowBouncy
+                                    ),
+                                    initialOffsetY = { it * (innerData.size + poolOfficeSwitch.relayAnswer.size) }
+                                )
+                                ))
+                    }
                 }
             }
             PullRefreshIndicator(true, state, Modifier.align(Alignment.TopCenter))
@@ -466,7 +484,12 @@ fun TemperatureOrPumpIcon(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PoolOfficeTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifier) {
+fun PoolOfficeTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    modifier: Modifier = Modifier,
+    settingUiState: Boolean,
+    changSettingUiState: KFunction1<Boolean, Unit>
+) {
     CenterAlignedTopAppBar(
         scrollBehavior = scrollBehavior,
         title = {
@@ -484,6 +507,28 @@ fun PoolOfficeTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modif
                     text = stringResource(R.string.pool_office_client),
                     style = MaterialTheme.typography.displayLarge
                 )
+                IconButton(onClick = { changSettingUiState(!settingUiState) }) {
+                    AnimatedVisibility(
+                        settingUiState,
+                        enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+                        exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.icon_for_enabling_additional_control_buttons)
+                        )
+                    }
+                    AnimatedVisibility(
+                        !settingUiState,
+                        enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+                        exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Warning,
+                            contentDescription = stringResource(R.string.icon_for_disabling_additional_control_buttons)
+                        )
+                    }
+                }
             }
         },
         modifier = modifier

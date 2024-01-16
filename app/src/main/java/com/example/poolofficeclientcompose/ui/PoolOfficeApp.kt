@@ -21,20 +21,27 @@ import com.example.poolofficeclientcompose.data.SwitchScreenAndName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PoolOfficeApp(context: Context,
+fun PoolOfficeApp(
+    context: Context,
     poolOfficeViewModel: PoolOfficeViewModel =
         viewModel(factory = PoolOfficeViewModel.Factory)
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val uiState by poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
-    //val uiState = poolOfficeViewModel.poolInfoDataUiState.collectAsStateWithLifecycle()
     val appearanceSwitch = SwitchScreenAndName.switches
     val appearanceSensor = SensorScreenAndName.sensors
     val refreshState by poolOfficeViewModel.refreshingUiState.collectAsStateWithLifecycle()
+    val settingUiState by poolOfficeViewModel.poolSettingUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { PoolOfficeTopAppBar(scrollBehavior = scrollBehavior) }
+        topBar = {
+            PoolOfficeTopAppBar(
+                settingUiState = settingUiState.isPoolSettings,
+                changSettingUiState = poolOfficeViewModel::selectSetting,
+                scrollBehavior = scrollBehavior
+            )
+        }
     ) {
         Surface(
             modifier = Modifier
@@ -42,6 +49,7 @@ fun PoolOfficeApp(context: Context,
                 .padding(it)
         ) {
             HomeScreen(
+                settingUiState = settingUiState.isPoolSettings,
                 poolInfoDataUiState = uiState,
                 switchRelay = poolOfficeViewModel::switchRelay,
                 reloadAllData = poolOfficeViewModel::getPoolInfo,

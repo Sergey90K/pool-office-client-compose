@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.poolofficeclientcompose.PoolOfficeApplication
 import com.example.poolofficeclientcompose.R
+import com.example.poolofficeclientcompose.data.PoolOfficePreferencesRepository
 import com.example.poolofficeclientcompose.utils.makeNotification
 import com.example.poolofficeclientcompose.data.PoolOfficeRepository
 import com.example.poolofficeclientcompose.network.CombinedData
@@ -18,8 +19,11 @@ import com.example.poolofficeclientcompose.network.NetworkResult
 import com.example.poolofficeclientcompose.network.PoolInfoData
 import com.example.poolofficeclientcompose.network.RelayData
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -34,7 +38,10 @@ sealed interface PoolOfficeUiState {
     object Loading : PoolOfficeUiState
 }
 
-class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository) : ViewModel() {
+class PoolOfficeViewModel(
+    private val poolOfficeRepository: PoolOfficeRepository,
+    private val poolOfficePreferencesRepository: PoolOfficePreferencesRepository
+) : ViewModel() {
     private val errorProgram = 1
     private val errorSensor = 2
     private val errorRelay = 3
@@ -47,6 +54,17 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     private val _refreshingUiState = MutableStateFlow(false)
     val refreshingUiState: StateFlow<Boolean> = _refreshingUiState.asStateFlow()
     private val showNotifications = MutableStateFlow(false)
+
+    val poolSettingUiState: StateFlow<PoolAppUiState> =
+        poolOfficePreferencesRepository.isPoolSettings.map { isPoolSettings ->
+            PoolAppUiState(isPoolSettings)
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+                initialValue = PoolAppUiState()
+            )
+
 
     init {
         getPoolInfo()
@@ -219,18 +237,33 @@ class PoolOfficeViewModel(private val poolOfficeRepository: PoolOfficeRepository
     }
 
     fun showNotification(message: String, context: Context) {
-        if (showNotifications.value){
+        if (showNotifications.value) {
             makeNotification(message, context)
         }
     }
 
+    fun selectSetting(isPoolSettings: Boolean) {
+        viewModelScope.launch {
+            poolOfficePreferencesRepository.savePoolSettingsPreference(isPoolSettings)
+        }
+    }
+
     companion object {
+        private const val TIMEOUT_MILLIS = 5_000L
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as PoolOfficeApplication)
                 val poolOfficeRepository = application.container.poolOfficeRepository
-                PoolOfficeViewModel(poolOfficeRepository = poolOfficeRepository)
+                val poolOfficePreferencesRepository = application.poolOfficePreferencesRepository
+                PoolOfficeViewModel(
+                    poolOfficeRepository = poolOfficeRepository,
+                    poolOfficePreferencesRepository = poolOfficePreferencesRepository
+                )
             }
         }
     }
 }
+
+data class PoolAppUiState(
+    val isPoolSettings: Boolean = true
+)

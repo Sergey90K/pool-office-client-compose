@@ -52,4 +52,6 @@
     <string name="dfdfdf">dfdfdf</string>
     <string name="pool_office_client_message">Pool Office Client Message</string>
     <string name="please_check_if_you_are_connected_to_your_wi_fi_network">Please check if you are connected to your Wi-Fi network</string>
+    <string name="icon_for_enabling_additional_control_buttons">Icon for enabling additional control buttons</string>
+    <string name="icon_for_disabling_additional_control_buttons">Icon for disabling additional control buttons</string>
 </resources>
