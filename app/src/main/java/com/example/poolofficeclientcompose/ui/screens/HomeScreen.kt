@@ -4,11 +4,14 @@ import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -73,36 +76,45 @@ fun HomeScreen(
     appearanceSensor: List<AppearanceSensor>,
     switchAllRelay: (stateOnOff: Boolean) -> Unit,
     refreshState: Boolean,
-    showNotification:(message:String, context: Context) -> Unit,
+    showNotification: (message: String, context: Context) -> Unit,
     context: Context,
     modifier: Modifier = Modifier
 ) {
-    when (poolInfoDataUiState) {
-        is PoolOfficeUiState.Success -> {
-            SuccessScreen(
-                poolOfficeSensor = poolInfoDataUiState.combineData.sensorsData,
-                poolOfficeSwitch = poolInfoDataUiState.combineData.relayData,
-                switchRelay = switchRelay,
-                appearanceSwitch = appearanceSwitch,
-                appearanceSensor = appearanceSensor,
-                switchAllRelay = switchAllRelay,
-                reloadAllData = reloadAllData,
-                refreshState = refreshState,
-                modifier = modifier
-            )
-        }
+    Crossfade(
+        targetState = poolInfoDataUiState,
+        label = "Box state",
+        animationSpec = tween(durationMillis = 800, easing = FastOutLinearInEasing)
+    ) { uiStateIn ->
+        when (uiStateIn) {
+            is PoolOfficeUiState.Success -> {
+                SuccessScreen(
+                    poolOfficeSensor = uiStateIn.combineData.sensorsData,
+                    poolOfficeSwitch = uiStateIn.combineData.relayData,
+                    switchRelay = switchRelay,
+                    appearanceSwitch = appearanceSwitch,
+                    appearanceSensor = appearanceSensor,
+                    switchAllRelay = switchAllRelay,
+                    reloadAllData = reloadAllData,
+                    refreshState = refreshState,
+                    modifier = modifier
+                )
+            }
 
-        is PoolOfficeUiState.Error -> {
-            showNotification(stringResource(R.string.please_check_if_you_are_connected_to_your_wi_fi_network), context )
-            ErrorScreen(
-                descriptionError = poolInfoDataUiState.errorCode,
-                retryAction = reloadAllData,
-                modifier = modifier.fillMaxSize()
-            )
-        }
+            is PoolOfficeUiState.Error -> {
+                showNotification(
+                    stringResource(R.string.please_check_if_you_are_connected_to_your_wi_fi_network),
+                    context
+                )
+                ErrorScreen(
+                    descriptionError = uiStateIn.errorCode,
+                    retryAction = reloadAllData,
+                    modifier = modifier.fillMaxSize()
+                )
+            }
 
-        is PoolOfficeUiState.Loading -> {
-            LoadingScreen(modifier = modifier.fillMaxSize())
+            is PoolOfficeUiState.Loading -> {
+                LoadingScreen(modifier = modifier.fillMaxSize())
+            }
         }
     }
 }
@@ -174,7 +186,7 @@ fun AllPanelsInOne(
                                 animationSpec = spring(
                                     stiffness = Spring.StiffnessVeryLow,
                                     dampingRatio = Spring.DampingRatioLowBouncy
-                                ), initialOffsetY = { it * (index + 1) }
+                                ), initialOffsetY = { it }
                             )
                             )
                     )
@@ -191,7 +203,7 @@ fun AllPanelsInOne(
                                 animationSpec = spring(
                                     stiffness = Spring.StiffnessVeryLow,
                                     dampingRatio = Spring.DampingRatioLowBouncy
-                                ), initialOffsetY = { it * (index + 1 + innerData.size) }
+                                ), initialOffsetY = { it * (innerData.size) }
                             )
                             )
                     )
@@ -546,6 +558,14 @@ fun ButtonOnOff(
 @Composable
 fun GreetingPreview() {
     PoolOfficeClientComposeTheme(darkTheme = false) {
-        //  ShowButtons(modifier = Modifier)
+        ErrorScreen(descriptionError = R.string.connection_error, retryAction = { /*TODO*/ })
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPrevies() {
+    PoolOfficeClientComposeTheme(darkTheme = false) {
+        LoadingScreen()
     }
 }
