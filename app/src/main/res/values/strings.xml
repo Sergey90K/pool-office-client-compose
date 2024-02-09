@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Pool Office Client Compose</string>
-    <string name="pool_office_client">Pool Office Client</string>
+    <string name="pool_office_client">Pool Office</string>
     <string name="temperature_icon">Temperature icon</string>
     <string name="pump_icon">Pump icon</string>
     <string name="temperature">Temperature</string>
@@ -54,4 +54,14 @@
     <string name="please_check_if_you_are_connected_to_your_wi_fi_network">Please check if you are connected to your Wi-Fi network</string>
     <string name="icon_for_enabling_additional_control_buttons">Icon for enabling additional control buttons</string>
     <string name="icon_for_disabling_additional_control_buttons">Icon for disabling additional control buttons</string>
+    <string name="authentication_succeeded">Authentication Succeeded</string>
+    <string name="authentication_error_code">It is forbidden to work without authorization. Authentication Error code:%1$s</string>
+    <string name="authentication_for_pool_office_client">Authentication for Pool Office Client</string>
+    <string name="please_login_to_get_access">Please login to get access</string>
+    <string name="you_must_be_logged_in_to_control_the_smart_home_system">You must be logged in to control the smart home system</string>
+    <string name="sorry_you_will_not_be_able_to_continue_without_authorisation">Sorry, you will not be able to continue without authorisation</string>
+    <string name="we_re_sorry_but_the_application_will_be_closed">We\'re sorry, but the application will be closed</string>
+    <string name="authentication_cancelled_signal">Authentication Cancelled Signal</string>
+    <string name="enable_fingerprint_login">Enable fingerprint login</string>
+    <string name="disable_fingerprint_login">Disable fingerprint login</string>
 </resources>

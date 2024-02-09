@@ -37,7 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -46,9 +45,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -488,7 +487,9 @@ fun PoolOfficeTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier,
     settingUiState: Boolean,
-    changSettingUiState: KFunction1<Boolean, Unit>
+    changSettingUiState: KFunction1<Boolean, Unit>,
+    changBiometricSettingUiState: KFunction1<Boolean, Unit>,
+    biometricSettingUiState: Boolean
 ) {
     CenterAlignedTopAppBar(
         scrollBehavior = scrollBehavior,
@@ -507,15 +508,17 @@ fun PoolOfficeTopAppBar(
                     text = stringResource(R.string.pool_office_client),
                     style = MaterialTheme.typography.displayLarge
                 )
-                IconButton(onClick = { changSettingUiState(!settingUiState) }) {
+                Spacer(Modifier.width(dimensionResource(R.dimen.padding_spacer)))
+                ElevatedButton(onClick = { changSettingUiState(!settingUiState) }) {
                     AnimatedVisibility(
                         settingUiState,
                         enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
                         exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.icon_for_enabling_additional_control_buttons)
+                        Image(
+                            painterResource(id = R.drawable.indeterminate_check_box_fill0_wght400_grad0_opsz24),
+                            contentDescription = stringResource(R.string.icon_for_enabling_additional_control_buttons),
+                            modifier = Modifier.size(dimensionResource(R.dimen.padding_medium))
                         )
                     }
                     AnimatedVisibility(
@@ -523,12 +526,40 @@ fun PoolOfficeTopAppBar(
                         enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
                         exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Warning,
-                            contentDescription = stringResource(R.string.icon_for_disabling_additional_control_buttons)
+                        Image(
+                            painterResource(id = R.drawable.select_check_box_fill0_wght400_grad0_opsz24),
+                            contentDescription = stringResource(R.string.icon_for_disabling_additional_control_buttons),
+                            modifier = Modifier.size(dimensionResource(R.dimen.padding_medium))
                         )
                     }
                 }
+
+                Spacer(Modifier.width(dimensionResource(R.dimen.padding_spacer)))
+                ElevatedButton(onClick = { changBiometricSettingUiState(!biometricSettingUiState) }) {
+                    AnimatedVisibility(
+                        biometricSettingUiState,
+                        enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+                        exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
+                    ) {
+                        Image(
+                            painterResource(id = R.drawable.cancel_presentation_fill0_wght400_grad0_opsz24),
+                            contentDescription = stringResource(R.string.disable_fingerprint_login),
+                            modifier = Modifier.size(dimensionResource(R.dimen.padding_medium))
+                        )
+                    }
+                    AnimatedVisibility(
+                        !biometricSettingUiState,
+                        enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+                        exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
+                    ) {
+                        Image(
+                            painterResource(id = R.drawable.baseline_fingerprint_24),
+                            contentDescription = stringResource(R.string.enable_fingerprint_login),
+                            modifier = Modifier.size(dimensionResource(R.dimen.padding_medium))
+                        )
+                    }
+                }
+
             }
         },
         modifier = modifier

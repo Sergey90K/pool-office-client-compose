@@ -14,12 +14,19 @@ import java.io.IOException
 class PoolOfficePreferencesRepository(private val dataStore: DataStore<Preferences>) {
     private companion object {
         val IS_POOL_SETTINGS = booleanPreferencesKey("is_pool_settings")
+        val IS_BIOMETRIC_SETTINGS = booleanPreferencesKey("is_biometric_settings")
         const val TAG = "PoolPreferencesRepo"
     }
 
     suspend fun savePoolSettingsPreference(isPoolSetting: Boolean) {
         dataStore.edit { preferences ->
             preferences[IS_POOL_SETTINGS] = isPoolSetting
+        }
+    }
+
+    suspend fun saveBiometricPoolSettingsPreference(isBiometricSetting: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[IS_BIOMETRIC_SETTINGS] = isBiometricSetting
         }
     }
 
@@ -34,5 +41,19 @@ class PoolOfficePreferencesRepository(private val dataStore: DataStore<Preferenc
         }
         .map { preferences ->
             preferences[IS_POOL_SETTINGS] ?: true
+        }
+
+    val isBiometricSettings: Flow<Boolean> = dataStore.data
+        .catch {
+            if (it is IOException) {
+                Log.e(TAG, "Error reading preferences.", it)
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[IS_BIOMETRIC_SETTINGS] ?: false
+
         }
 }

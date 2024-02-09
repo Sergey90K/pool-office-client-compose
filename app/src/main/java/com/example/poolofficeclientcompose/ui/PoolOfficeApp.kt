@@ -22,7 +22,7 @@ import com.example.poolofficeclientcompose.data.SwitchScreenAndName
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PoolOfficeApp(
-    context: Context,
+    context: Context, launchBiometric: () -> Unit,
     poolOfficeViewModel: PoolOfficeViewModel =
         viewModel(factory = PoolOfficeViewModel.Factory)
 ) {
@@ -32,6 +32,11 @@ fun PoolOfficeApp(
     val appearanceSensor = SensorScreenAndName.sensors
     val refreshState by poolOfficeViewModel.refreshingUiState.collectAsStateWithLifecycle()
     val settingUiState by poolOfficeViewModel.poolSettingUiState.collectAsStateWithLifecycle()
+    val settingBiometricUiState by poolOfficeViewModel.poolBiometricUiState.collectAsStateWithLifecycle()
+
+    if (settingBiometricUiState.isBiometricSettings) {
+        launchBiometric()
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -39,6 +44,8 @@ fun PoolOfficeApp(
             PoolOfficeTopAppBar(
                 settingUiState = settingUiState.isPoolSettings,
                 changSettingUiState = poolOfficeViewModel::selectSetting,
+                biometricSettingUiState = settingBiometricUiState.isBiometricSettings,
+                changBiometricSettingUiState = poolOfficeViewModel::selectBiometricSetting,
                 scrollBehavior = scrollBehavior
             )
         }

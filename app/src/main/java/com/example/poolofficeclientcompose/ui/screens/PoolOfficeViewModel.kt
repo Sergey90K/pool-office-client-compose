@@ -65,6 +65,15 @@ class PoolOfficeViewModel(
                 initialValue = PoolAppUiState()
             )
 
+    val poolBiometricUiState: StateFlow<PoolBiometricUiState> =
+        poolOfficePreferencesRepository.isBiometricSettings.map { isBiometricSettings ->
+            PoolBiometricUiState(isBiometricSettings)
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+                initialValue = PoolBiometricUiState()
+            )
 
     init {
         getPoolInfo()
@@ -248,6 +257,12 @@ class PoolOfficeViewModel(
         }
     }
 
+    fun selectBiometricSetting(isBiometricSettings: Boolean) {
+        viewModelScope.launch {
+            poolOfficePreferencesRepository.saveBiometricPoolSettingsPreference(isBiometricSettings)
+        }
+    }
+
     companion object {
         private const val TIMEOUT_MILLIS = 5_000L
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -266,4 +281,8 @@ class PoolOfficeViewModel(
 
 data class PoolAppUiState(
     val isPoolSettings: Boolean = true
+)
+
+data class PoolBiometricUiState(
+    val isBiometricSettings: Boolean = false
 )
