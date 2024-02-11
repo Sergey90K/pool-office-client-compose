@@ -51,12 +51,20 @@ class MainActivity : ComponentActivity() {
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
                 super.onAuthenticationError(errorCode, errString)
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.authentication_error_code, errorCode.toString()),
-                    Toast.LENGTH_SHORT
-                ).show()
-                this@MainActivity.finish()
+                if (errorCode == 11) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.sorry_but_you_do_not_have_a_password_set_on_your_phone_please_install_a_biometric_passcode_on_your_phone),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.authentication_error_code, errorCode.toString()),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    this@MainActivity.finish()
+                }
             }
 
             override fun onAuthenticationFailed() {

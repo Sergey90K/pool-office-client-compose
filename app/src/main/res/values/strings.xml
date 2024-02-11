@@ -64,4 +64,5 @@
     <string name="authentication_cancelled_signal">Authentication Cancelled Signal</string>
     <string name="enable_fingerprint_login">Enable fingerprint login</string>
     <string name="disable_fingerprint_login">Disable fingerprint login</string>
+    <string name="sorry_but_you_do_not_have_a_password_set_on_your_phone_please_install_a_biometric_passcode_on_your_phone">Sorry, but you do not have a password set on your phone. Please install a biometric passcode on your phone</string>
 </resources>
